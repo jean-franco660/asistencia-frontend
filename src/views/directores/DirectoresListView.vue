@@ -169,7 +169,7 @@
 import { ref, reactive, computed, onMounted } from "vue";
 import { usuariosWebService, institucionesService } from "@/services/api";
 import ButtonComponent from "@/components/ui/ButtonComponent.vue";
-import CardComponent from "@/components/ui/UICard.vue";
+import CardComponent from "@/components/ui/UiCard.vue";
 import InputField from "@/components/ui/InputField.vue";
 import TableComponent from "@/components/ui/TableComponent.vue";
 import ModalComponent from "@/components/ui/ModalComponent.vue";
