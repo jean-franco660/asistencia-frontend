@@ -177,7 +177,7 @@
 <script setup>
 import { ref, reactive, onMounted, computed } from "vue";
 import { asistenciasService, institucionesService } from "@/services/api";
-import CardComponent from "@/components/ui/UICard.vue";
+import CardComponent from "@/components/ui/UiCard.vue";
 import InputField from "@/components/ui/InputField.vue";
 import ButtonComponent from "@/components/ui/ButtonComponent.vue";
 import TableComponent from "@/components/ui/TableComponent.vue";
