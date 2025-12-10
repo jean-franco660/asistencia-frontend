@@ -645,12 +645,23 @@ const fetchStats = async () => {
 const loadMonthlyChart = async () => {
   try {
     const response = await api.get("/asistencias/mes-grafico");
+    const data = response.data;
 
-    const data = response.data; // ← CORRECCIÓN CRÍTICA
+    console.log("📊 Datos del gráfico mensual:", data);
 
     // === VALIDACIONES ===
-    if (!Array.isArray(data.labels)) {
-      console.warn("⚠️ data.labels NO es un array", data.labels);
+    if (!data || typeof data !== 'object') {
+      console.warn("⚠️ Respuesta inválida del servidor");
+      monthlyLabels.value = [];
+      monthlyData.value = [];
+      return;
+    }
+
+    if (!Array.isArray(data.labels) || data.labels.length === 0) {
+      console.warn("⚠️ data.labels NO es un array válido", data.labels);
+      monthlyLabels.value = [];
+      monthlyData.value = [];
+      return;
     }
 
     if (!Array.isArray(data.asistencias)) {
@@ -662,32 +673,52 @@ const loadMonthlyChart = async () => {
     }
 
     // === ASIGNACIÓN ===
-    monthlyLabels.value = data.labels || [];
+    monthlyLabels.value = data.labels;
+
+    // Asegurar que los datos sean arrays válidos
+    const asistenciasData = Array.isArray(data.asistencias) ? data.asistencias : [];
+    const faltasData = Array.isArray(data.faltas) ? data.faltas : [];
 
     monthlyData.value = [
       {
         label: "Asistencias",
-        data: data.asistencias || [],
+        data: asistenciasData,
         color: "#10b981", // verde
       },
       {
         label: "Faltas",
-        data: data.faltas || [],
+        data: faltasData,
         color: "#ef4444", // rojo
       },
     ];
 
+    // Calcular promedio de asistencias
+    if (asistenciasData.length > 0) {
+      const sum = asistenciasData.reduce((acc, val) => acc + (val || 0), 0);
+      monthlyAvg.value = Math.round(sum / asistenciasData.length);
+    } else {
+      monthlyAvg.value = 0;
+    }
+
     monthlyPeriod.value = data.periodo?.mes || "";
+
+    console.log("✅ Gráfico cargado:", {
+      labels: monthlyLabels.value,
+      datasets: monthlyData.value,
+      avg: monthlyAvg.value
+    });
   } catch (err) {
     console.error(
       "❌ Error /asistencias/mes-grafico",
       err.response?.status,
-      err.response?.data
+      err.response?.data,
+      err.message
     );
 
     monthlyLabels.value = [];
     monthlyData.value = [];
     monthlyPeriod.value = "";
+    monthlyAvg.value = 0;
   }
 };
 

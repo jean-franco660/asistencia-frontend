@@ -1,179 +1,694 @@
 <template>
-  <div class="space-y-6">
-    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-      Registro de Asistencias
-    </h1>
-
-    <CardComponent>
-      <!-- Filtros -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-        <InputField v-model="filters.fecha_inicio" type="date" label="Fecha inicio" />
-        <InputField v-model="filters.fecha_fin" type="date" label="Fecha fin" />
-
-        <div>
-          <label class="label">Institución</label>
-          <select v-model="filters.institucion_id" class="input-field">
-            <option value="">Todas</option>
-            <option v-for="i in instituciones" :key="i.id" :value="i.id">
-              {{ i.nombre }}
-            </option>
-          </select>
-        </div>
-
-        <div>
-          <label class="label">Tipo</label>
-          <select v-model="filters.tipo" class="input-field">
-            <option value="">Todos</option>
-            <option value="entrada">Entrada</option>
-            <option value="salida">Salida</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="flex gap-3 mb-4">
-        <ButtonComponent variant="primary" @click="applyFilters">
-          Aplicar
-        </ButtonComponent>
-        <ButtonComponent variant="secondary" @click="clearFilters">
-          Limpiar
-        </ButtonComponent>
-        <ButtonComponent variant="success" @click="exportToExcel" class="ml-auto">
-          📊 Exportar Excel
-        </ButtonComponent>
-      </div>
-
-      <!-- Resumen -->
-      <div v-if="!loading && asistencias.length > 0" class="grid grid-cols-4 gap-4 mb-4">
-        <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
-          <div class="text-sm text-green-600 dark:text-green-400">A Tiempo</div>
-          <div class="text-2xl font-bold text-green-700 dark:text-green-300">
-            {{ resumen.a_tiempo }}
-          </div>
-        </div>
-        <div class="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg">
-          <div class="text-sm text-orange-600 dark:text-orange-400">Tarde</div>
-          <div class="text-2xl font-bold text-orange-700 dark:text-orange-300">
-            {{ resumen.tarde }}
-          </div>
-        </div>
-        <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
-          <div class="text-sm text-red-600 dark:text-red-400">Faltas</div>
-          <div class="text-2xl font-bold text-red-700 dark:text-red-300">
-            {{ resumen.faltas }}
-          </div>
-        </div>
-        <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-          <div class="text-sm text-blue-600 dark:text-blue-400">Total</div>
-          <div class="text-2xl font-bold text-blue-700 dark:text-blue-300">
-            {{ asistencias.length }}
-          </div>
-        </div>
-      </div>
-
-      <!-- Tabla -->
-      <LoadingSpinner v-if="loading" text="Cargando asistencias..." />
-
-      <div v-else-if="asistencias.length === 0" class="text-center py-8 text-gray-500">
-        No se encontraron registros de asistencia
-      </div>
-
-      <TableComponent v-else :columns="columns" :data="asistencias">
-        <template #cell-docente="{ row }">
+  <div
+    class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-indigo-950 p-6"
+  >
+    <div class="max-w-7xl mx-auto space-y-6">
+      <!-- Header Premium -->
+      <div
+        class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 p-8"
+      >
+        <div class="flex items-center justify-between">
           <div>
-            <div class="font-medium">{{ row.usuario?.nombre || "-" }}</div>
-            <div class="text-sm text-gray-500">{{ row.usuario?.codigo || "" }}</div>
+            <div class="flex items-center gap-3">
+              <div
+                class="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg"
+              >
+                <svg
+                  class="w-8 h-8 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h1
+                  class="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent"
+                >
+                  Registro de Asistencias
+                </h1>
+                <p class="text-gray-600 dark:text-gray-400 mt-1">
+                  Gestión avanzada de control de asistencia
+                </p>
+              </div>
+            </div>
           </div>
-        </template>
-
-        <template #cell-institucion="{ row }">
-          {{ row.institucion?.nombre || "-" }}
-        </template>
-
-        <template #cell-fecha="{ row }">
-          <div v-if="row.fecha_hora">
-            <div>{{ formatDate(row.fecha_hora) }}</div>
-            <small class="text-gray-500">{{ formatTime(row.fecha_hora) }}</small>
+          <div class="flex gap-3">
+            <button
+              @click="exportToExcel"
+              class="group relative px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl font-semibold shadow-lg shadow-green-500/50 hover:shadow-xl hover:shadow-green-500/60 transition-all duration-300 transform hover:scale-105"
+            >
+              <span class="flex items-center gap-2">
+                <svg
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+                Exportar Excel
+              </span>
+            </button>
           </div>
-          <span v-else class="text-gray-400">Sin fecha</span>
-        </template>
+        </div>
+      </div>
 
-        <template #cell-tipo="{ row }">
-          <span
-            class="px-2 py-1 text-xs rounded-full"
-            :class="
-              row.tipo === 'entrada'
-                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
-            "
+      <!-- Filtros Premium -->
+      <div
+        class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 p-6"
+      >
+        <div class="flex items-center gap-3 mb-6">
+          <div
+            class="p-3 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl shadow-lg"
           >
-            {{ row.tipo === "entrada" ? "🟢 Entrada" : "🔴 Salida" }}
-          </span>
-        </template>
+            <svg
+              class="w-6 h-6 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+              />
+            </svg>
+          </div>
+          <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">
+            Filtros de Búsqueda
+          </h2>
+        </div>
 
-        <template #cell-estado="{ row }">
-          <span :class="getEstadoClass(row)">
-            {{ estadoLabel(row) }}
-          </span>
-        </template>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <!-- Fecha Inicio -->
+          <div class="group">
+            <label
+              class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+            >
+              <svg
+                class="w-4 h-4 inline mr-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+              Fecha Inicio
+            </label>
+            <input
+              v-model="filters.fecha_inicio"
+              type="date"
+              class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 dark:text-white"
+            />
+          </div>
 
-        <template #cell-ubicacion="{ row }">
-          <div class="text-sm">
+          <!-- Fecha Fin -->
+          <div class="group">
+            <label
+              class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+            >
+              <svg
+                class="w-4 h-4 inline mr-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+              Fecha Fin
+            </label>
+            <input
+              v-model="filters.fecha_fin"
+              type="date"
+              class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 dark:text-white"
+            />
+          </div>
+
+          <!-- Institución -->
+          <div class="group">
+            <label
+              class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+            >
+              <svg
+                class="w-4 h-4 inline mr-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                />
+              </svg>
+              Institución
+            </label>
+            <select
+              v-model="filters.institucion_id"
+              class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 dark:text-white"
+            >
+              <option value="">Todas las instituciones</option>
+              <option v-for="i in instituciones" :key="i.id" :value="i.id">
+                {{ i.nombre }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Tipo -->
+          <div class="group">
+            <label
+              class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+            >
+              <svg
+                class="w-4 h-4 inline mr-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                />
+              </svg>
+              Tipo
+            </label>
+            <select
+              v-model="filters.tipo"
+              class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 dark:text-white"
+            >
+              <option value="">Todos los tipos</option>
+              <option value="entrada">Entrada</option>
+              <option value="salida">Salida</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex gap-3">
+          <button
+            @click="applyFilters"
+            class="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/50 hover:shadow-xl hover:shadow-blue-500/60 transition-all duration-300 transform hover:scale-105"
+          >
+            <span class="flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              Aplicar Filtros
+            </span>
+          </button>
+          <button
+            @click="clearFilters"
+            class="px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-xl font-semibold shadow-lg transition-all duration-300 transform hover:scale-105"
+          >
+            <span class="flex items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              Limpiar
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Resumen Premium -->
+      <div
+        v-if="!loading && asistencias.length > 0"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+      >
+        <!-- A Tiempo -->
+        <div
+          class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl shadow-xl p-6 text-white transform hover:scale-105 transition-all duration-300"
+        >
+          <div class="flex items-center justify-between mb-3">
+            <div class="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+          </div>
+          <div class="text-sm font-medium opacity-90 mb-1">A Tiempo</div>
+          <div class="text-4xl font-bold">{{ resumen.a_tiempo }}</div>
+        </div>
+
+        <!-- Tarde -->
+        <div
+          class="bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl shadow-xl p-6 text-white transform hover:scale-105 transition-all duration-300"
+        >
+          <div class="flex items-center justify-between mb-3">
+            <div class="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+          </div>
+          <div class="text-sm font-medium opacity-90 mb-1">Tarde</div>
+          <div class="text-4xl font-bold">{{ resumen.tarde }}</div>
+        </div>
+
+        <!-- Faltas -->
+        <div
+          class="bg-gradient-to-br from-red-500 to-pink-600 rounded-2xl shadow-xl p-6 text-white transform hover:scale-105 transition-all duration-300"
+        >
+          <div class="flex items-center justify-between mb-3">
+            <div class="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+          </div>
+          <div class="text-sm font-medium opacity-90 mb-1">Faltas</div>
+          <div class="text-4xl font-bold">{{ resumen.faltas }}</div>
+        </div>
+
+        <!-- Total -->
+        <div
+          class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-xl p-6 text-white transform hover:scale-105 transition-all duration-300"
+        >
+          <div class="flex items-center justify-between mb-3">
+            <div class="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                />
+              </svg>
+            </div>
+          </div>
+          <div class="text-sm font-medium opacity-90 mb-1">Total Registros</div>
+          <div class="text-4xl font-bold">{{ asistencias.length }}</div>
+        </div>
+      </div>
+
+      <!-- Tabla Premium -->
+      <div
+        class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 overflow-hidden"
+      >
+        <div v-if="loading" class="flex flex-col items-center justify-center py-20">
+          <div class="relative">
             <div
+              class="w-20 h-20 border-8 border-blue-200 dark:border-blue-900 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin"
+            ></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <svg
+                class="w-8 h-8 text-blue-600 dark:text-blue-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+          </div>
+          <p class="mt-6 text-lg font-semibold text-gray-600 dark:text-gray-400">
+            Cargando asistencias...
+          </p>
+        </div>
+
+        <div
+          v-else-if="asistencias.length === 0"
+          class="flex flex-col items-center justify-center py-20"
+        >
+          <div class="p-6 bg-gray-100 dark:bg-gray-700 rounded-full mb-4">
+            <svg
+              class="w-16 h-16 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-700 dark:text-gray-300 mb-2">
+            No se encontraron registros
+          </h3>
+          <p class="text-gray-500 dark:text-gray-400">
+            Intenta ajustar los filtros de búsqueda
+          </p>
+        </div>
+
+        <div v-else class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+                <th
+                  class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider"
+                >
+                  Docente
+                </th>
+                <th
+                  class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider"
+                >
+                  Institución
+                </th>
+                <th
+                  class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider"
+                >
+                  Fecha/Hora
+                </th>
+                <th
+                  class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider"
+                >
+                  Tipo
+                </th>
+                <th
+                  class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider"
+                >
+                  Estado
+                </th>
+                <th
+                  class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider"
+                >
+                  Ubicación
+                </th>
+                <th
+                  class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider"
+                >
+                  Foto
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+              <tr
+                v-for="row in asistencias"
+                :key="row.id"
+                class="hover:bg-blue-50 dark:hover:bg-gray-700/50 transition-colors duration-200"
+              >
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                      <svg
+                        class="w-5 h-5 text-blue-600 dark:text-blue-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <div class="font-semibold text-gray-900 dark:text-gray-100">
+                        {{ row.usuario?.nombre || "-" }}
+                      </div>
+                      <div class="text-sm text-gray-500 dark:text-gray-400">
+                        {{ row.usuario?.codigo || "" }}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-2">
+                    <svg
+                      class="w-4 h-4 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                      />
+                    </svg>
+                    <span class="text-gray-700 dark:text-gray-300">{{
+                      row.institucion?.nombre || "-"
+                    }}</span>
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  <div v-if="row.fecha_hora">
+                    <div class="font-medium text-gray-900 dark:text-gray-100">
+                      {{ formatDate(row.fecha_hora) }}
+                    </div>
+                    <div
+                      class="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1"
+                    >
+                      <svg
+                        class="w-3 h-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      {{ formatTime(row.fecha_hora) }}
+                    </div>
+                  </div>
+                  <span v-else class="text-gray-400">Sin fecha</span>
+                </td>
+                <td class="px-6 py-4">
+                  <span
+                    v-if="row.tipo === 'entrada'"
+                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+                      />
+                    </svg>
+                    Entrada
+                  </span>
+                  <span
+                    v-else
+                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                      />
+                    </svg>
+                    Salida
+                  </span>
+                </td>
+                <td class="px-6 py-4">
+                  <span
+                    :class="getEstadoClass(row)"
+                    class="inline-flex items-center gap-2 font-semibold"
+                  >
+                    <span v-html="estadoIcon(row)"></span>
+                    {{ estadoLabel(row) }}
+                  </span>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="text-sm">
+                    <div
+                      :class="
+                        row.dentro_rango
+                          ? 'text-green-600 dark:text-green-400 font-semibold flex items-center gap-1'
+                          : 'text-red-600 dark:text-red-400 font-semibold flex items-center gap-1'
+                      "
+                    >
+                      <svg
+                        v-if="row.dentro_rango"
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                      <svg
+                        v-else
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                      {{ row.dentro_rango ? "En rango" : "Fuera de rango" }}
+                    </div>
+                    <div
+                      class="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1"
+                    >
+                      <svg
+                        class="w-3 h-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                        />
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                      </svg>
+                      {{ formatCoordinate(row.latitud) }},
+                      {{ formatCoordinate(row.longitud) }}
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  <button
+                    v-if="row.foto"
+                    @click="openPhoto(row)"
+                    class="group relative w-14 h-14 rounded-xl overflow-hidden border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-110"
+                  >
+                    <img
+                      :src="photoUrl(row.foto)"
+                      class="w-full h-full object-cover"
+                      alt="Foto de asistencia"
+                      @error="handleImageError"
+                    />
+                    <div
+                      class="absolute inset-0 bg-blue-600/0 group-hover:bg-blue-600/20 transition-all duration-300 flex items-center justify-center"
+                    >
+                      <svg
+                        class="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                        />
+                      </svg>
+                    </div>
+                  </button>
+                  <span v-else class="text-gray-400">—</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Paginación -->
+        <div
+          v-if="pagination.total > pagination.per_page"
+          class="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700"
+        >
+          <nav class="flex items-center justify-center gap-2">
+            <button
+              v-for="page in totalPages"
+              :key="page"
+              @click="goToPage(page)"
+              class="px-4 py-2 rounded-lg font-semibold transition-all duration-300"
               :class="
-                row.dentro_rango
-                  ? 'text-green-600 font-medium'
-                  : 'text-red-600 font-medium'
+                page === pagination.current_page
+                  ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg transform scale-110'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
               "
             >
-              {{ row.dentro_rango ? "✓ En rango" : "✗ Fuera de rango" }}
-            </div>
-            <div class="text-xs text-gray-500">
-              {{ formatCoordinate(row.latitud) }}, {{ formatCoordinate(row.longitud) }}
-            </div>
-          </div>
-        </template>
-
-        <template #cell-foto="{ row }">
-          <button
-            v-if="row.foto"
-            @click="openPhoto(row)"
-            class="w-12 h-12 rounded overflow-hidden border hover:border-blue-500 transition"
-          >
-            <img
-              :src="photoUrl(row.foto)"
-              class="w-full h-full object-cover"
-              alt="Foto de asistencia"
-              @error="handleImageError"
-            />
-          </button>
-          <span v-else class="text-gray-400">—</span>
-        </template>
-      </TableComponent>
-
-      <!-- Paginación (si la API la soporta) -->
-      <div v-if="pagination.total > pagination.per_page" class="mt-4 flex justify-center">
-        <nav class="flex gap-2">
-          <button
-            v-for="page in totalPages"
-            :key="page"
-            @click="goToPage(page)"
-            class="px-3 py-1 rounded"
-            :class="
-              page === pagination.current_page
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
-            "
-          >
-            {{ page }}
-          </button>
-        </nav>
+              {{ page }}
+            </button>
+          </nav>
+        </div>
       </div>
-    </CardComponent>
+    </div>
 
     <!-- Modal Foto -->
     <PhotoModal :open="showPhoto" :asistencia="selected" @close="closePhoto" />
   </div>
 </template>
+
 <script setup>
 import { ref, reactive, onMounted, computed } from "vue";
 import { asistenciasService, institucionesService } from "@/services/api";
@@ -183,6 +698,7 @@ import ButtonComponent from "@/components/ui/ButtonComponent.vue";
 import TableComponent from "@/components/ui/TableComponent.vue";
 import LoadingSpinner from "@/components/ui/LoadingSpinner.vue";
 import PhotoModal from "@/components/ui/PhotoModal.vue";
+import Swal from "sweetalert2";
 
 const asistencias = ref([]);
 const instituciones = ref([]);
@@ -193,8 +709,8 @@ const selected = ref(null);
 const filters = reactive({
   fecha_inicio: "",
   fecha_fin: "",
-  institucion_id: null, // ✅ Cambiar de "" a null
-  tipo: null, // ✅ Cambiar de "" a null
+  institucion_id: null,
+  tipo: null,
 });
 
 const pagination = reactive({
@@ -203,29 +719,13 @@ const pagination = reactive({
   total: 0,
 });
 
-const columns = [
-  { key: "docente", label: "DOCENTE" },
-  { key: "institucion", label: "INSTITUCIÓN" },
-  { key: "fecha", label: "FECHA/HORA" },
-  { key: "tipo", label: "TIPO" },
-  { key: "estado", label: "ESTADO" },
-  { key: "ubicacion", label: "UBICACIÓN" },
-  { key: "foto", label: "FOTO" },
-];
-
 const formatCoordinate = (coord) => {
   if (!coord) return "0.000000";
-
-  // Convertir a número si es string
   const num = typeof coord === "string" ? parseFloat(coord) : coord;
-
-  // Validar que sea un número válido
   if (isNaN(num)) return "0.000000";
-
   return num.toFixed(6);
 };
 
-// Resumen calculado
 const resumen = computed(() => {
   const a_tiempo = asistencias.value.filter((a) => a.estado === "a_tiempo").length;
   const tarde = asistencias.value.filter((a) => a.estado === "tarde").length;
@@ -237,15 +737,11 @@ const totalPages = computed(() => Math.ceil(pagination.total / pagination.per_pa
 
 const photoUrl = (path) => {
   if (!path) return null;
-
-  // ✅ Validar que VITE_API_BASE_URL exista
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
-
   if (!apiUrl) {
     console.error("VITE_API_BASE_URL no está definida en .env");
     return null;
   }
-
   const baseUrl = apiUrl.replace("/api/v1/web", "");
   return `${baseUrl}/storage/${path}`;
 };
@@ -266,30 +762,38 @@ const closePhoto = () => {
 };
 
 const estadoLabel = (row) => {
-  if (row.falta === true) return "❌ Ausente";
-  if (row.estado === "a_tiempo") return "✅ A Tiempo";
-  if (row.estado === "tarde") return "⏰ Tarde";
-  if (row.estado === "salida_antes") return "⚠️ Salida Anticipada";
+  if (row.falta === true) return "Ausente";
+  if (row.estado === "a_tiempo") return "A Tiempo";
+  if (row.estado === "tarde") return "Tarde";
+  if (row.estado === "salida_antes") return "Salida Anticipada";
   return "—";
 };
 
+const estadoIcon = (row) => {
+  if (row.falta === true)
+    return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
+  if (row.estado === "a_tiempo")
+    return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
+  if (row.estado === "tarde")
+    return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
+  if (row.estado === "salida_antes")
+    return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>';
+  return "";
+};
+
 const getEstadoClass = (row) => {
-  if (row.falta === true) return "text-red-600 font-medium";
-  if (row.estado === "a_tiempo") return "text-green-600 font-medium";
-  if (row.estado === "tarde") return "text-orange-600 font-medium";
-  if (row.estado === "salida_antes") return "text-yellow-600 font-medium";
+  if (row.falta === true) return "text-red-600 dark:text-red-400";
+  if (row.estado === "a_tiempo") return "text-green-600 dark:text-green-400";
+  if (row.estado === "tarde") return "text-orange-600 dark:text-orange-400";
+  if (row.estado === "salida_antes") return "text-yellow-600 dark:text-yellow-400";
   return "text-gray-500";
 };
 
 const formatDate = (dateString) => {
   if (!dateString) return "Sin fecha";
-
   try {
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
-      return "Fecha inválida";
-    }
-
+    if (isNaN(date.getTime())) return "Fecha inválida";
     return date.toLocaleDateString("es-PE", {
       day: "2-digit",
       month: "2-digit",
@@ -303,13 +807,9 @@ const formatDate = (dateString) => {
 
 const formatTime = (dateString) => {
   if (!dateString) return "--:--";
-
   try {
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
-      return "--:--";
-    }
-
+    if (isNaN(date.getTime())) return "--:--";
     return date.toLocaleTimeString("es-PE", {
       hour: "2-digit",
       minute: "2-digit",
@@ -323,7 +823,6 @@ const formatTime = (dateString) => {
 
 const load = async (page = 1) => {
   loading.value = true;
-
   try {
     const params = {
       fecha_inicio: filters.fecha_inicio || undefined,
@@ -336,20 +835,35 @@ const load = async (page = 1) => {
 
     const res = await asistenciasService.getAll(params);
 
-    // ✅ La API devuelve { data: [...], total: X, success: true }
     if (res.data && res.data.data) {
       asistencias.value = res.data.data;
       pagination.total = res.data.total || res.data.data.length;
+
+      Swal.fire({
+        icon: "success",
+        title: "Datos cargados",
+        text: `Se encontraron ${asistencias.value.length} registros`,
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      });
     } else {
       console.warn("⚠️ Estructura inesperada:", res.data);
       asistencias.value = [];
     }
   } catch (error) {
     console.error("❌ Error cargando asistencias:", error);
-    console.error("Response:", error.response?.data);
     asistencias.value = [];
-  }
 
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "No se pudieron cargar las asistencias",
+      confirmButtonColor: "#3B82F6",
+    });
+  }
   loading.value = false;
 };
 
@@ -360,11 +874,32 @@ const loadInstituciones = async () => {
   } catch (error) {
     console.error("❌ Error cargando instituciones:", error);
     instituciones.value = [];
+
+    Swal.fire({
+      icon: "warning",
+      title: "Advertencia",
+      text: "No se pudieron cargar las instituciones",
+      toast: true,
+      position: "top-end",
+      showConfirmButton: false,
+      timer: 3000,
+    });
   }
 };
 
 const applyFilters = () => {
-  load(1);
+  Swal.fire({
+    icon: "info",
+    title: "Aplicando filtros...",
+    text: "Buscando registros",
+    showConfirmButton: false,
+    timer: 1500,
+    timerProgressBar: true,
+  });
+
+  setTimeout(() => {
+    load(1);
+  }, 1500);
 };
 
 const clearFilters = () => {
@@ -375,6 +910,18 @@ const clearFilters = () => {
   filters.fecha_fin = d.toISOString().slice(0, 10);
   filters.institucion_id = null;
   filters.tipo = null;
+
+  Swal.fire({
+    icon: "success",
+    title: "Filtros limpiados",
+    text: "Se restablecieron los filtros por defecto",
+    toast: true,
+    position: "top-end",
+    showConfirmButton: false,
+    timer: 2000,
+    timerProgressBar: true,
+  });
+
   load(1);
 };
 
@@ -386,14 +933,25 @@ const goToPage = (page) => {
 
 const exportToExcel = async () => {
   if (asistencias.value.length === 0) {
-    alert("No hay datos para exportar");
+    Swal.fire({
+      icon: "warning",
+      title: "Sin datos",
+      text: "No hay datos para exportar",
+      confirmButtonColor: "#3B82F6",
+    });
     return;
   }
 
   try {
-    loading.value = true;
+    Swal.fire({
+      title: "Exportando...",
+      html: "Generando archivo Excel, por favor espere",
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
 
-    // Preparar parámetros de filtros
     const params = {
       fecha_inicio: filters.fecha_inicio || undefined,
       fecha_fin: filters.fecha_fin || undefined,
@@ -401,10 +959,8 @@ const exportToExcel = async () => {
       tipo: filters.tipo || undefined,
     };
 
-    // Llamar al endpoint del backend
     const response = await asistenciasService.exportar(params);
 
-    // Crear blob y descargar
     const blob = new Blob([response.data], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
@@ -422,12 +978,23 @@ const exportToExcel = async () => {
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
 
-    console.log("✅ Archivo exportado correctamente");
+    Swal.fire({
+      icon: "success",
+      title: "¡Exportado!",
+      text: "El archivo se descargó correctamente",
+      confirmButtonColor: "#10B981",
+      timer: 3000,
+      timerProgressBar: true,
+    });
   } catch (error) {
     console.error("❌ Error al exportar:", error);
-    alert("Error al exportar el archivo. Por favor intenta nuevamente.");
-  } finally {
-    loading.value = false;
+
+    Swal.fire({
+      icon: "error",
+      title: "Error al exportar",
+      text: "No se pudo generar el archivo. Intenta nuevamente.",
+      confirmButtonColor: "#EF4444",
+    });
   }
 };
 
