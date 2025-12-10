@@ -384,11 +384,58 @@ const goToPage = (page) => {
   }
 };
 
-const exportToExcel = () => {
-  alert("Función de exportación en desarrollo");
+const exportToExcel = async () => {
+  if (asistencias.value.length === 0) {
+    alert("No hay datos para exportar");
+    return;
+  }
+
+  try {
+    loading.value = true;
+
+    // Preparar parámetros de filtros
+    const params = {
+      fecha_inicio: filters.fecha_inicio || undefined,
+      fecha_fin: filters.fecha_fin || undefined,
+      institucion_id: filters.institucion_id || undefined,
+      tipo: filters.tipo || undefined,
+    };
+
+    // Llamar al endpoint del backend
+    const response = await asistenciasService.exportar(params);
+
+    // Crear blob y descargar
+    const blob = new Blob([response.data], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+
+    const fecha_inicio = filters.fecha_inicio || "inicio";
+    const fecha_fin = filters.fecha_fin || "fin";
+    link.download = `Reporte_Asistencias_${fecha_inicio}_a_${fecha_fin}.xlsx`;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    console.log("✅ Archivo exportado correctamente");
+  } catch (error) {
+    console.error("❌ Error al exportar:", error);
+    alert("Error al exportar el archivo. Por favor intenta nuevamente.");
+  } finally {
+    loading.value = false;
+  }
 };
 
 onMounted(() => {
+  const d = new Date();
+  filters.fecha_inicio = new Date(d.getFullYear(), d.getMonth(), 1)
+    .toISOString()
+    .slice(0, 10);
   filters.fecha_fin = d.toISOString().slice(0, 10);
 
   load();

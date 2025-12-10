@@ -67,7 +67,7 @@
                 <th
                   class="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider"
                 >
-                  Nombre
+                  Institución
                 </th>
                 <th
                   class="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider"
@@ -77,12 +77,7 @@
                 <th
                   class="px-6 py-4 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider"
                 >
-                  Latitud
-                </th>
-                <th
-                  class="px-6 py-4 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider"
-                >
-                  Longitud
+                  Coordenadas
                 </th>
                 <th
                   class="px-6 py-4 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider"
@@ -104,10 +99,22 @@
               >
                 <td class="px-6 py-4">
                   <div class="flex items-center gap-3">
+                    <!-- Logo o icono por defecto -->
                     <div
-                      class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-md"
+                      v-if="institucion.logo"
+                      class="w-12 h-12 rounded-lg overflow-hidden shadow-md flex-shrink-0"
                     >
-                      <Building2 :size="20" class="text-white" />
+                      <img
+                        :src="getLogoUrl(institucion.logo)"
+                        :alt="institucion.nombre"
+                        class="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div
+                      v-else
+                      class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-md flex-shrink-0"
+                    >
+                      <Building2 :size="24" class="text-white" />
                     </div>
                     <div>
                       <p class="font-semibold text-gray-800 dark:text-gray-200">
@@ -118,25 +125,25 @@
                 </td>
                 <td class="px-6 py-4">
                   <div class="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                    <MapPin :size="16" class="text-gray-400" />
+                    <MapPin :size="16" class="text-gray-400 flex-shrink-0" />
                     <span class="text-sm">{{
                       institucion.direccion || "Sin dirección"
                     }}</span>
                   </div>
                 </td>
-                <td class="px-6 py-4 text-center">
-                  <span
-                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                  >
-                    {{ institucion.latitud || "-" }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 text-center">
-                  <span
-                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
-                  >
-                    {{ institucion.longitud || "-" }}
-                  </span>
+                <td class="px-6 py-4">
+                  <div class="flex flex-col gap-1 items-center">
+                    <span
+                      class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                    >
+                      Lat: {{ institucion.latitud || "-" }}
+                    </span>
+                    <span
+                      class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+                    >
+                      Lng: {{ institucion.longitud || "-" }}
+                    </span>
+                  </div>
                 </td>
                 <td class="px-6 py-4 text-center">
                   <span
@@ -165,7 +172,7 @@
                 </td>
               </tr>
               <tr v-if="!instituciones.length">
-                <td colspan="6" class="px-6 py-12 text-center">
+                <td colspan="5" class="px-6 py-12 text-center">
                   <div class="flex flex-col items-center gap-3">
                     <div
                       class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center"
@@ -215,6 +222,76 @@
               :message="error"
               @close="error = ''"
             />
+
+            <!-- Logo Upload -->
+            <div class="md:col-span-2">
+              <label
+                class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+              >
+                <div class="flex items-center gap-2">
+                  <Building2 :size="18" class="text-blue-600" />
+                  Logo de la Institución
+                </div>
+              </label>
+
+              <div class="flex items-start gap-4">
+                <!-- Preview del logo -->
+                <div class="flex-shrink-0">
+                  <div
+                    v-if="logoPreview || form.logo"
+                    class="w-24 h-24 rounded-xl overflow-hidden shadow-lg border-2 border-gray-200 dark:border-gray-600"
+                  >
+                    <img
+                      :src="logoPreview || getLogoUrl(form.logo)"
+                      alt="Logo preview"
+                      class="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div
+                    v-else
+                    class="w-24 h-24 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-lg"
+                  >
+                    <Building2 :size="32" class="text-white" />
+                  </div>
+                </div>
+
+                <!-- Input de archivo -->
+                <div class="flex-1">
+                  <input
+                    ref="logoInput"
+                    type="file"
+                    accept="image/jpeg,image/png,image/jpg,image/gif,image/svg+xml"
+                    @change="handleLogoChange"
+                    class="hidden"
+                  />
+                  <button
+                    type="button"
+                    @click="$refs.logoInput.click()"
+                    class="w-full px-4 py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl hover:border-blue-500 dark:hover:border-blue-400 transition-colors text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium"
+                  >
+                    <div class="flex items-center justify-center gap-2">
+                      <Upload :size="20" />
+                      <span>{{
+                        form.logo || logoPreview ? "Cambiar logo" : "Subir logo"
+                      }}</span>
+                    </div>
+                  </button>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                    Formatos: JPG, PNG, GIF, SVG. Máx: 2MB
+                  </p>
+
+                  <!-- Botón para eliminar logo -->
+                  <button
+                    v-if="form.logo || logoPreview"
+                    type="button"
+                    @click="removeLogo"
+                    class="mt-2 text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium"
+                  >
+                    Eliminar logo
+                  </button>
+                </div>
+              </div>
+            </div>
 
             <!-- Grid 2 columnas -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -362,12 +439,9 @@
 <script setup>
 import { ref, reactive, onMounted } from "vue";
 import { institucionesService } from "../../services/api";
-import CardComponent from "../../components/ui/UiCard.vue";
 import ButtonComponent from "../../components/ui/ButtonComponent.vue";
 import InputField from "../../components/ui/InputField.vue";
-import TableComponent from "../../components/ui/TableComponent.vue";
 import ModalComponent from "../../components/ui/ModalComponent.vue";
-import LoadingSpinner from "../../components/ui/LoadingSpinner.vue";
 import AlertMessage from "../../components/ui/AlertMessage.vue";
 import {
   Building2,
@@ -379,6 +453,7 @@ import {
   Compass,
   CircleDot,
   Loader2,
+  Upload,
 } from "lucide-vue-next";
 import { useAlert } from "@/utils/sweetalert";
 
@@ -390,6 +465,9 @@ const showModal = ref(false);
 const modalMode = ref("create");
 const searchQuery = ref("");
 const error = ref("");
+const logoInput = ref(null);
+const logoPreview = ref(null);
+const logoFile = ref(null);
 
 const instituciones = ref([]);
 
@@ -400,6 +478,7 @@ const form = reactive({
   latitud: null,
   longitud: null,
   radio: 50,
+  logo: null,
 });
 
 const errors = reactive({
@@ -408,7 +487,62 @@ const errors = reactive({
   latitud: "",
   longitud: "",
   radio: "",
+  logo: "",
 });
+
+// Obtener URL completa del logo
+const getLogoUrl = (logoPath) => {
+  if (!logoPath) return null;
+  const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+  return `${baseUrl}/storage/${logoPath}`;
+};
+
+// Manejar cambio de archivo de logo
+const handleLogoChange = (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Validar tamaño (2MB)
+  if (file.size > 2 * 1024 * 1024) {
+    errors.logo = "El archivo no debe superar 2MB";
+    alert.error("Error", "El archivo no debe superar 2MB");
+    return;
+  }
+
+  // Validar tipo
+  const validTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/jpg",
+    "image/gif",
+    "image/svg+xml",
+  ];
+  if (!validTypes.includes(file.type)) {
+    errors.logo = "Formato no válido";
+    alert.error("Error", "Formato de imagen no válido");
+    return;
+  }
+
+  logoFile.value = file;
+  errors.logo = "";
+
+  // Crear preview
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    logoPreview.value = e.target.result;
+  };
+  reader.readAsDataURL(file);
+};
+
+// Eliminar logo
+const removeLogo = () => {
+  logoFile.value = null;
+  logoPreview.value = null;
+  form.logo = null;
+  if (logoInput.value) {
+    logoInput.value.value = "";
+  }
+};
 
 const resetForm = () => {
   form.id = null;
@@ -417,6 +551,9 @@ const resetForm = () => {
   form.latitud = null;
   form.longitud = null;
   form.radio = 50;
+  form.logo = null;
+  logoFile.value = null;
+  logoPreview.value = null;
   error.value = "";
   Object.keys(errors).forEach((k) => (errors[k] = ""));
 };
@@ -461,19 +598,26 @@ const handleSubmit = async () => {
   submitting.value = true;
 
   try {
-    const payload = {
-      nombre: form.nombre,
-      direccion: form.direccion || null,
-      latitud: form.latitud || null,
-      longitud: form.longitud || null,
-      radio: form.radio,
-    };
+    // Crear FormData para enviar archivos
+    const formData = new FormData();
+    formData.append("nombre", form.nombre);
+    formData.append("direccion", form.direccion || "");
+    formData.append("latitud", form.latitud || "");
+    formData.append("longitud", form.longitud || "");
+    formData.append("radio", form.radio);
+
+    // Agregar logo si existe
+    if (logoFile.value) {
+      formData.append("logo", logoFile.value);
+    }
 
     if (modalMode.value === "create") {
-      await institucionesService.create(payload);
+      await institucionesService.create(formData);
       alert.toastSuccess("Institución registrada");
     } else {
-      await institucionesService.update(form.id, payload);
+      // Para actualizar, necesitamos simular PUT con POST
+      formData.append("_method", "PUT");
+      await institucionesService.update(form.id, formData);
       alert.toastSuccess("Institución actualizada");
     }
 
