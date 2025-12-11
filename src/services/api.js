@@ -96,13 +96,17 @@ export const institucionesService = {
 export const asistenciasService = {
   getAll: (params) => api.get('/asistencias', { params }),
   getById: (id) => api.get(`/asistencias/${id}`),
-  getStats: () => api.get('/asistencias/stats'),
   resumenSemanal: () => api.get('/asistencias/semana'),
   exportar: (params) => api.get('/asistencias/exportar', { 
-    params, 
-    responseType: 'blob' 
+    params,
+    responseType: 'blob',
+    headers: {
+      // Sobrescribimos solo el Accept para esta petición
+      Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    },
   }),
 }
+
 
 // Horarios de institución
 export const horariosService = {
