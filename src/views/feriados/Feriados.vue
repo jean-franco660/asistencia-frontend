@@ -35,7 +35,7 @@
 
     <!-- Selector institución (admin/director) -->
     <div
-      v-if="(isAdmin || isDirector) && instituciones.length"
+      v-if="(isAdmin || isSupervisor) && instituciones.length"
       class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700"
     >
       <label class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 block">
@@ -193,8 +193,8 @@ const normalize = (d) => {
   return dt.toISOString().split("T")[0];
 };
 
-const isAdmin = computed(() => auth.user?.rol === "admin");
-const isDirector = computed(() => auth.user?.rol === "director");
+const isAdmin = computed(() => auth.user?.rol === "administrador" || auth.user?.rol === "super_admin");
+const isSupervisor = computed(() => auth.user?.rol === "supervisor");
 const isDarkTheme = computed(() => theme.isDark);
 
 /* === PERMISOS === */
@@ -202,7 +202,7 @@ const canSave = computed(() => {
   if (tipoActual.value === "nacional") return isAdmin.value;
   if (tipoActual.value === "institucional") {
     if (isAdmin.value) return true;
-    if (isDirector.value && institucionSeleccionada.value) return true;
+    if (isSupervisor.value && institucionSeleccionada.value) return true;
   }
   return false;
 });
@@ -212,7 +212,7 @@ const canDelete = computed(() => canSave.value && editMode.value);
 /* === Cargar instituciones === */
 const loadInstituciones = async () => {
   try {
-    if (isAdmin.value || isDirector.value) {
+    if (isAdmin.value || isSupervisor.value) {
       const { data } = await api.get("/instituciones");
       instituciones.value = Array.isArray(data) ? data : data?.data ?? [];
 
@@ -223,6 +223,7 @@ const loadInstituciones = async () => {
 
     await loadFeriados();
   } catch (e) {
+    console.error("Error cargando instituciones:", e);
     alert.error("Error", "No se pudieron cargar las instituciones");
   }
 };
@@ -233,7 +234,7 @@ const loadFeriados = async () => {
     const params = {};
 
     // Si es director o se está trabajando institucional, filtrar
-    if (isDirector.value || tipoActual.value === "institucional") {
+    if (isSupervisor.value || tipoActual.value === "institucional") {
       params.institucion_id = institucionSeleccionada.value ?? null;
     }
 
@@ -253,7 +254,17 @@ const loadFeriados = async () => {
       };
     });
   } catch (err) {
-    alert.error("Error", "No se pudieron cargar los feriados");
+    console.error("Error cargando feriados:", err);
+    console.error("Response:", err.response?.data);
+    
+    if (err.response?.status === 403) {
+      alert.error(
+        "Acceso denegado", 
+        "No tienes permisos para acceder a los feriados. Este es un problema de configuración del backend."
+      );
+    } else {
+      alert.error("Error", err.response?.data?.message || "No se pudieron cargar los feriados");
+    }
   }
 };
 
@@ -305,19 +316,25 @@ const saveFeriado = async () => {
     return;
   }
 
-  const fecha = new Date(form.value.fecha);
+  // Validar que institucion_id sea requerido para tipo institucional
+  if (tipoActual.value === "institucional" && !institucionSeleccionada.value) {
+    alert.error("Validación", "Debe seleccionar una institución para feriados institucionales");
+    return;
+  }
 
   const payload = {
-    tipo: tipoActual.value,
-    dia: fecha.getDate(),
-    mes: fecha.getMonth() + 1,
-    descripcion: form.value.descripcion,
+    tipo: tipoActual.value,  // "nacional" o "institucional" (minúscula)
+    nombre: form.value.descripcion,  // Backend espera "nombre", no "descripcion"
+    fecha: form.value.fecha,  // YYYY-MM-DD
     activo: form.value.activo,
   };
 
+  // institucion_id es REQUERIDO para tipo institucional
   if (tipoActual.value === "institucional") {
     payload.institucion_id = institucionSeleccionada.value;
   }
+
+  console.log('📤 [FERIADOS] Datos a enviar:', payload);
 
   try {
     if (editMode.value) {
@@ -331,7 +348,9 @@ const saveFeriado = async () => {
     modalOpen.value = false;
     await loadFeriados();
   } catch (err) {
-    alert.error("Error", "No se pudo guardar el feriado");
+    console.error("Error guardando feriado:", err);
+    const errorMsg = err.response?.data?.message || "No se pudo guardar el feriado";
+    alert.error("Error", errorMsg);
   }
 };
 

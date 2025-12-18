@@ -1,8 +1,8 @@
 <template>
   <div
-    class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-indigo-950 p-6"
+    class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-indigo-950 p-3 sm:p-4 md:p-6"
   >
-    <div class="max-w-7xl mx-auto space-y-6">
+    <div class="max-w-7xl mx-auto spacing-responsive">
       <!-- Header Premium -->
       <div
         class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 p-8"
@@ -34,7 +34,11 @@
                   Registro de Asistencias
                 </h1>
                 <p class="text-gray-600 dark:text-gray-400 mt-1">
-                  Gestión avanzada de control de asistencia
+                  {{
+                    userRole === "supervisor"
+                      ? "Mis instituciones"
+                      : "Gestión avanzada de control de asistencia"
+                  }}
                 </p>
               </div>
             </div>
@@ -42,7 +46,8 @@
           <div class="flex gap-3">
             <button
               @click="exportToExcel"
-              class="group relative px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl font-semibold shadow-lg shadow-green-500/50 hover:shadow-xl hover:shadow-green-500/60 transition-all duration-300 transform hover:scale-105"
+              :disabled="asistencias.length === 0"
+              class="group relative px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl font-semibold shadow-lg shadow-green-500/50 hover:shadow-xl hover:shadow-green-500/60 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               <span class="flex items-center gap-2">
                 <svg
@@ -92,7 +97,7 @@
           </h2>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
           <!-- Fecha Inicio -->
           <div class="group">
             <label
@@ -171,9 +176,15 @@
               v-model="filters.institucion_id"
               class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 dark:text-white"
             >
-              <option value="">Todas las instituciones</option>
+              <option value="">
+                {{
+                  userRole === "supervisor"
+                    ? "Mis instituciones"
+                    : "Todas las instituciones"
+                }}
+              </option>
               <option v-for="i in instituciones" :key="i.id" :value="i.id">
-                {{ i.nombre }}
+                {{ i.nombre }} {{ i.codigo_modular_ie ? `(${i.codigo_modular_ie})` : "" }}
               </option>
             </select>
           </div>
@@ -203,9 +214,37 @@
               class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 dark:text-white"
             >
               <option value="">Todos los tipos</option>
-              <option value="entrada">Entrada</option>
-              <option value="salida">Salida</option>
+              <option value="ENTRADA">Entrada</option>
+              <option value="SALIDA">Salida</option>
             </select>
+          </div>
+
+          <!-- Búsqueda por Docente -->
+          <div class="group">
+            <label
+              class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+            >
+              <svg
+                class="w-4 h-4 inline mr-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              Buscar Docente
+            </label>
+            <input
+              v-model="filters.search"
+              type="text"
+              placeholder="Nombre o código..."
+              class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 dark:text-white placeholder-gray-400"
+            />
           </div>
         </div>
 
@@ -384,7 +423,11 @@
             No se encontraron registros
           </h3>
           <p class="text-gray-500 dark:text-gray-400">
-            Intenta ajustar los filtros de búsqueda
+            {{
+              userRole === "supervisor"
+                ? "No hay asistencias en tus instituciones asignadas"
+                : "Intenta ajustar los filtros de búsqueda"
+            }}
           </p>
         </div>
 
@@ -454,10 +497,10 @@
                     </div>
                     <div>
                       <div class="font-semibold text-gray-900 dark:text-gray-100">
-                        {{ row.usuario?.nombre || "-" }}
+                        {{ getDocenteNombre(row.usuario) }}
                       </div>
                       <div class="text-sm text-gray-500 dark:text-gray-400">
-                        {{ row.usuario?.codigo || "" }}
+                        {{ row.usuario?.codigo_modular || "" }}
                       </div>
                     </div>
                   </div>
@@ -510,7 +553,7 @@
                 </td>
                 <td class="px-6 py-4">
                   <span
-                    v-if="row.tipo === 'entrada'"
+                    v-if="row.tipo === 'ENTRADA'"
                     class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
                   >
                     <svg
@@ -692,13 +735,12 @@
 <script setup>
 import { ref, reactive, onMounted, computed } from "vue";
 import { asistenciasService, institucionesService } from "@/services/api";
-import CardComponent from "@/components/ui/UiCard.vue";
-import InputField from "@/components/ui/InputField.vue";
-import ButtonComponent from "@/components/ui/ButtonComponent.vue";
-import TableComponent from "@/components/ui/TableComponent.vue";
-import LoadingSpinner from "@/components/ui/LoadingSpinner.vue";
+import { useAuthStore } from "@/store/auth";
 import PhotoModal from "@/components/ui/PhotoModal.vue";
 import Swal from "sweetalert2";
+
+const authStore = useAuthStore();
+const userRole = computed(() => authStore.user?.rol);
 
 const asistencias = ref([]);
 const instituciones = ref([]);
@@ -711,6 +753,7 @@ const filters = reactive({
   fecha_fin: "",
   institucion_id: null,
   tipo: null,
+  search: "",
 });
 
 const pagination = reactive({
@@ -726,10 +769,19 @@ const formatCoordinate = (coord) => {
   return num.toFixed(6);
 };
 
+const getDocenteNombre = (usuario) => {
+  if (!usuario) return "-";
+  const partes = [];
+  if (usuario.apellido_paterno) partes.push(usuario.apellido_paterno);
+  if (usuario.apellido_materno) partes.push(usuario.apellido_materno);
+  if (usuario.nombres) partes.push(usuario.nombres);
+  return partes.length > 0 ? partes.join(" ") : "-";
+};
+
 const resumen = computed(() => {
-  const a_tiempo = asistencias.value.filter((a) => a.estado === "a_tiempo").length;
-  const tarde = asistencias.value.filter((a) => a.estado === "tarde").length;
-  const faltas = asistencias.value.filter((a) => a.falta === true).length;
+  const a_tiempo = asistencias.value.filter((a) => a.resultado === "A_TIEMPO").length;
+  const tarde = asistencias.value.filter((a) => a.resultado === "TARDE").length;
+  const faltas = asistencias.value.filter((a) => a.situacion === "FALTA").length;
   return { a_tiempo, tarde, faltas };
 });
 
@@ -762,30 +814,30 @@ const closePhoto = () => {
 };
 
 const estadoLabel = (row) => {
-  if (row.falta === true) return "Ausente";
-  if (row.estado === "a_tiempo") return "A Tiempo";
-  if (row.estado === "tarde") return "Tarde";
-  if (row.estado === "salida_antes") return "Salida Anticipada";
+  if (row.situacion === "FALTA") return "Ausente";
+  if (row.resultado === "A_TIEMPO") return "A Tiempo";
+  if (row.resultado === "TARDE") return "Tarde";
+  if (row.resultado === "SALIDA_ANTES") return "Salida Anticipada";
   return "—";
 };
 
 const estadoIcon = (row) => {
-  if (row.falta === true)
+  if (row.situacion === "FALTA")
     return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
-  if (row.estado === "a_tiempo")
+  if (row.resultado === "A_TIEMPO")
     return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
-  if (row.estado === "tarde")
+  if (row.resultado === "TARDE")
     return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
-  if (row.estado === "salida_antes")
+  if (row.resultado === "SALIDA_ANTES")
     return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>';
   return "";
 };
 
 const getEstadoClass = (row) => {
-  if (row.falta === true) return "text-red-600 dark:text-red-400";
-  if (row.estado === "a_tiempo") return "text-green-600 dark:text-green-400";
-  if (row.estado === "tarde") return "text-orange-600 dark:text-orange-400";
-  if (row.estado === "salida_antes") return "text-yellow-600 dark:text-yellow-400";
+  if (row.situacion === "FALTA") return "text-red-600 dark:text-red-400";
+  if (row.resultado === "A_TIEMPO") return "text-green-600 dark:text-green-400";
+  if (row.resultado === "TARDE") return "text-orange-600 dark:text-orange-400";
+  if (row.resultado === "SALIDA_ANTES") return "text-yellow-600 dark:text-yellow-400";
   return "text-gray-500";
 };
 
@@ -829,26 +881,33 @@ const load = async (page = 1) => {
       fecha_fin: filters.fecha_fin || undefined,
       institucion_id: filters.institucion_id || undefined,
       tipo: filters.tipo || undefined,
+      search: filters.search || undefined,
       page,
       per_page: pagination.per_page,
     };
 
+    console.log("📤 Cargando asistencias con params:", params);
+
     const res = await asistenciasService.getAll(params);
 
-    if (res.data && res.data.data) {
-      asistencias.value = res.data.data;
-      pagination.total = res.data.total || res.data.data.length;
+    console.log("📥 Respuesta recibida:", res.data);
 
-      Swal.fire({
-        icon: "success",
-        title: "Datos cargados",
-        text: `Se encontraron ${asistencias.value.length} registros`,
-        toast: true,
-        position: "top-end",
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-      });
+    if (res.data?.success && res.data?.data) {
+      const responseData = res.data.data;
+
+      // Manejar paginación de Laravel
+      if (responseData.data && Array.isArray(responseData.data)) {
+        asistencias.value = responseData.data;
+        pagination.total = responseData.total || 0;
+        pagination.current_page = responseData.current_page || 1;
+      } else if (Array.isArray(responseData)) {
+        asistencias.value = responseData;
+        pagination.total = responseData.length;
+      } else {
+        asistencias.value = [];
+      }
+
+      console.log(`✅ ${asistencias.value.length} asistencias cargadas`);
     } else {
       console.warn("⚠️ Estructura inesperada:", res.data);
       asistencias.value = [];
@@ -860,7 +919,7 @@ const load = async (page = 1) => {
     Swal.fire({
       icon: "error",
       title: "Error",
-      text: "No se pudieron cargar las asistencias",
+      text: error.response?.data?.message || "No se pudieron cargar las asistencias",
       confirmButtonColor: "#3B82F6",
     });
   }
@@ -869,37 +928,28 @@ const load = async (page = 1) => {
 
 const loadInstituciones = async () => {
   try {
-    const res = await institucionesService.getAll();
-    instituciones.value = Array.isArray(res.data) ? res.data : res.data?.data || [];
+    const res = await institucionesService.getMias();
+
+    console.log("📥 Instituciones recibidas:", res.data);
+
+    if (res.data?.success && res.data?.data) {
+      instituciones.value = Array.isArray(res.data.data) ? res.data.data : [];
+    } else if (Array.isArray(res.data)) {
+      instituciones.value = res.data;
+    } else {
+      instituciones.value = [];
+    }
+
+    console.log(`✅ ${instituciones.value.length} instituciones cargadas`);
   } catch (error) {
     console.error("❌ Error cargando instituciones:", error);
     instituciones.value = [];
-
-    Swal.fire({
-      icon: "warning",
-      title: "Advertencia",
-      text: "No se pudieron cargar las instituciones",
-      toast: true,
-      position: "top-end",
-      showConfirmButton: false,
-      timer: 3000,
-    });
   }
 };
 
 const applyFilters = () => {
-  Swal.fire({
-    icon: "info",
-    title: "Aplicando filtros...",
-    text: "Buscando registros",
-    showConfirmButton: false,
-    timer: 1500,
-    timerProgressBar: true,
-  });
-
-  setTimeout(() => {
-    load(1);
-  }, 1500);
+  console.log("🔍 Aplicando filtros:", filters);
+  load(1);
 };
 
 const clearFilters = () => {
@@ -910,6 +960,7 @@ const clearFilters = () => {
   filters.fecha_fin = d.toISOString().slice(0, 10);
   filters.institucion_id = null;
   filters.tipo = null;
+  filters.search = "";
 
   Swal.fire({
     icon: "success",
@@ -969,9 +1020,16 @@ const exportToExcel = async () => {
     const link = document.createElement("a");
     link.href = url;
 
+    const institucionNombre = filters.institucion_id
+      ? instituciones.value.find((i) => i.id === filters.institucion_id)?.nombre ||
+        "Seleccionada"
+      : userRole.value === "supervisor"
+      ? "Mis_Instituciones"
+      : "Todas";
+
     const fecha_inicio = filters.fecha_inicio || "inicio";
     const fecha_fin = filters.fecha_fin || "fin";
-    link.download = `Reporte_Asistencias_${fecha_inicio}_a_${fecha_fin}.xlsx`;
+    link.download = `Asistencias_${institucionNombre}_${fecha_inicio}_a_${fecha_fin}.xlsx`;
 
     document.body.appendChild(link);
     link.click();
@@ -992,7 +1050,9 @@ const exportToExcel = async () => {
     Swal.fire({
       icon: "error",
       title: "Error al exportar",
-      text: "No se pudo generar el archivo. Intenta nuevamente.",
+      text:
+        error.response?.data?.message ||
+        "No se pudo generar el archivo. Intenta nuevamente.",
       confirmButtonColor: "#EF4444",
     });
   }
@@ -1005,7 +1065,7 @@ onMounted(() => {
     .slice(0, 10);
   filters.fecha_fin = d.toISOString().slice(0, 10);
 
-  load();
   loadInstituciones();
+  load();
 });
 </script>

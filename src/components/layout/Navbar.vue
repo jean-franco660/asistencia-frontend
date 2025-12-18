@@ -2,15 +2,16 @@
   <header
     class="bg-white dark:bg-gray-800 shadow-md fixed top-0 left-0 right-0 z-40 transition-colors"
   >
-    <nav class="px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <nav class="px-3 sm:px-4 md:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
       <!-- Botón menú móvil + título -->
-      <div class="flex items-center">
+      <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+        <!-- Botón móvil -->
         <button
           @click="toggleSidebar"
-          class="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 lg:hidden"
+          class="p-1.5 sm:p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 lg:hidden touch-target flex-shrink-0"
           aria-label="Abrir menú lateral"
         >
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -20,19 +21,66 @@
           </svg>
         </button>
 
-        <h1 class="ml-3 text-xl font-semibold text-gray-900 dark:text-gray-100">
-          Sistema de Asistencia
+        <!-- Botón desktop (siempre visible) -->
+        <button
+          @click="toggleSidebar"
+          class="hidden lg:flex p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-shrink-0"
+          aria-label="Alternar menú lateral"
+          title="Ocultar/Mostrar menú"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          </svg>
+        </button>
+
+        <h1 class="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-100 truncate">
+          <span class="hidden sm:inline">Sistema de Asistencia</span>
+          <span class="sm:hidden">Asistencia</span>
         </h1>
       </div>
 
       <!-- Controles -->
-      <div class="flex items-center space-x-4">
+      <div class="flex items-center space-x-2 sm:space-x-3 md:space-x-4 flex-shrink-0">
         <!-- Tema -->
         <button
           @click="toggleDarkMode"
-          class="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+          class="p-1.5 sm:p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 touch-target"
           aria-label="Cambiar tema"
         >
+          <svg
+            v-if="isDark"
+            class="w-4 h-4 sm:w-5 sm:h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+            />
+          </svg>
+          <svg
+            v-else
+            class="w-4 h-4 sm:w-5 sm:h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+            />
+          </svg>
+        </button>
           <svg
             v-if="isDark"
             class="w-5 h-5"
@@ -47,21 +95,6 @@
               d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
             />
           </svg>
-          <svg
-            v-else
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-            />
-          </svg>
-        </button>
 
         <!-- Usuario -->
         <div v-if="user" class="relative" ref="userMenuRef">

@@ -83,6 +83,35 @@
               />
             </Transition>
 
+            <!-- Rate Limit Warning -->
+            <Transition
+              enter-active-class="transition duration-300 ease-out"
+              enter-from-class="transform scale-95 opacity-0"
+              enter-to-class="transform scale-100 opacity-100"
+              leave-active-class="transition duration-200 ease-in"
+              leave-from-class="transform scale-100 opacity-100"
+              leave-to-class="transform scale-95 opacity-0"
+            >
+              <div
+                v-if="rateLimiting.isRateLimited.value"
+                class="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-400 dark:border-yellow-600 rounded-xl p-4"
+              >
+                <div class="flex items-start gap-3">
+                  <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <div class="flex-1">
+                    <h4 class="text-sm font-semibold text-yellow-800 dark:text-yellow-200 mb-1">
+                      Demasiados intentos
+                    </h4>
+                    <p class="text-sm text-yellow-700 dark:text-yellow-300">
+                      Por favor espera <span class="font-bold">{{ rateLimiting.countdown.value }}</span> segundos antes de intentar nuevamente.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Transition>
+
             <!-- Campo de email -->
             <div class="space-y-2">
               <label
@@ -201,7 +230,7 @@
             <!-- Botón de login -->
             <button
               type="submit"
-              :disabled="loading"
+              :disabled="loading || rateLimiting.isRateLimited.value"
               class="relative w-full group overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 p-[2px] transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <div
@@ -277,6 +306,7 @@
 import { ref, reactive } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../../store/auth";
+import { useRateLimiting } from "@/composables/useRateLimiting";
 import AlertMessage from "../../components/ui/AlertMessage.vue";
 
 // SweetAlert Premium
@@ -285,6 +315,7 @@ const alert = useAlert();
 
 const router = useRouter();
 const authStore = useAuthStore();
+const rateLimiting = useRateLimiting();
 
 const loading = ref(false);
 const error = ref("");
@@ -344,10 +375,12 @@ const handleLogin = async () => {
       alert.toastSuccess("Bienvenido");
 
       const user = authStore.user;
-      if (user?.rol === "admin") {
+      if (user?.rol === "super_admin") {
         await router.push("/dashboard");
-      } else if (user?.rol === "director") {
-        await router.push("/director/dashboard");
+      } else if (user?.rol === "administrador") {
+        await router.push("/dashboard");
+      } else if (user?.rol === "supervisor") {
+        await router.push("/supervisor/dashboard");
       } else {
         alert.error("Acceso denegado", "Rol no autorizado");
       }
@@ -356,10 +389,16 @@ const handleLogin = async () => {
       form.password = "";
     }
   } catch (err) {
-    alert.error(
-      "Error del servidor",
-      err.response?.data?.message || "No se pudo conectar al servidor"
-    );
+    // Handle rate limiting (429)
+    if (err.response?.status === 429) {
+      rateLimiting.handleRateLimitError(err);
+      error.value = "Demasiados intentos. Por favor espera antes de intentar nuevamente.";
+    } else {
+      alert.error(
+        "Error del servidor",
+        err.response?.data?.message || "No se pudo conectar al servidor"
+      );
+    }
     console.error("Error de login:", err);
     form.password = "";
   } finally {

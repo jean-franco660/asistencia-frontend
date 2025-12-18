@@ -53,7 +53,7 @@ const menuItems = [
     name: "dashboard",
     label: "Dashboard",
     path: "/dashboard",
-    roles: ["admin"],
+    roles: ["super_admin", "administrador"],
     icon: () =>
       h("svg", { fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" }, [
         h("path", {
@@ -67,10 +67,10 @@ const menuItems = [
   },
 
   {
-    name: "dashboard-director",
+    name: "dashboard-supervisor",
     label: "Dashboard",
-    path: "/director/dashboard",
-    roles: ["director"],
+    path: "/supervisor/dashboard",
+    roles: ["supervisor"],
     icon: () =>
       h("svg", { fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" }, [
         h("path", {
@@ -87,7 +87,7 @@ const menuItems = [
     name: "usuarios",
     label: "Docentes",
     path: "/usuarios",
-    roles: ["admin", "director"],
+    roles: ["super_admin", "administrador", "supervisor"],
     icon: () =>
       h("svg", { fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" }, [
         h("path", {
@@ -103,7 +103,7 @@ const menuItems = [
     name: "instituciones",
     label: "Instituciones",
     path: "/instituciones",
-    roles: ["admin"],
+    roles: ["super_admin", "administrador"],
     icon: () =>
       h("svg", { fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" }, [
         h("path", {
@@ -119,7 +119,7 @@ const menuItems = [
     name: "horarios",
     label: "Horarios",
     path: "/horarios",
-    roles: ["admin", "director"],
+    roles: ["super_admin", "administrador", "supervisor"],
     icon: () =>
       h("svg", { fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" }, [
         h("path", {
@@ -131,10 +131,10 @@ const menuItems = [
       ]),
   },
   {
-    name: "directores",
-    label: "Directores",
-    path: "/directores",
-    roles: ["admin"],
+    name: "supervisores",
+    label: "Supervisores",
+    path: "/supervisores",
+    roles: ["super_admin", "administrador"],
     icon: () =>
       h("svg", { fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" }, [
         h("path", {
@@ -150,7 +150,7 @@ const menuItems = [
     name: "administradores",
     label: "Administradores",
     path: "/administradores",
-    roles: ["admin"],
+    roles: ["super_admin"],
     icon: () =>
       h("svg", { fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" }, [
         h("path", {
@@ -163,12 +163,29 @@ const menuItems = [
       ]),
   },
 
-  // --- Director ---
+  {
+    name: "justificaciones",
+    label: "Justificaciones",
+    path: "/justificaciones",
+    roles: ["super_admin", "administrador", "supervisor"],
+    icon: () =>
+      h("svg", { fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" }, [
+        h("path", {
+          "stroke-linecap": "round",
+          "stroke-linejoin": "round",
+          "stroke-width": "2",
+          d:
+            "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
+        }),
+      ]),
+  },
+
+  // --- Supervisor ---
   {
     name: "asistencias",
     label: "Asistencias",
     path: "/asistencias",
-    roles: ["director", "admin"],
+    roles: ["super_admin", "supervisor", "administrador"],
     icon: () =>
       h("svg", { fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" }, [
         h("path", {
@@ -184,7 +201,7 @@ const menuItems = [
     name: "feriados",
     label: "Feriados",
     path: "/feriados",
-    roles: ["admin", "director"],
+    roles: ["super_admin", "administrador", "supervisor"],
     icon: () =>
       h("svg", { fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" }, [
         h("path", {
@@ -193,6 +210,24 @@ const menuItems = [
           "stroke-width": "2",
           d:
             "M8 7V3m8 4V3m-9 8h10m-11 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2z",
+        }),
+      ]),
+  },
+
+  // --- Super Admin Only ---
+  {
+    name: "audit-logs",
+    label: "Auditoría",
+    path: "/audit-logs",
+    roles: ["super_admin"],
+    icon: () =>
+      h("svg", { fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" }, [
+        h("path", {
+          "stroke-linecap": "round",
+          "stroke-linejoin": "round",
+          "stroke-width": "2",
+          d:
+            "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z",
         }),
       ]),
   },

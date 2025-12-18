@@ -74,12 +74,7 @@
               @click="openCreateModal"
               class="w-full md:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2 justify-center"
             >
-              <svg
-                class="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -129,9 +124,7 @@
           <div
             class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-600"
           ></div>
-          <p class="mt-4 text-gray-500 dark:text-gray-400">
-            Cargando administradores...
-          </p>
+          <p class="mt-4 text-gray-500 dark:text-gray-400">Cargando administradores...</p>
         </div>
 
         <div v-else class="overflow-x-auto">
@@ -446,13 +439,56 @@
               >
                 Contraseña *
               </label>
-              <input
-                v-model="form.password"
-                type="password"
-                required
-                class="w-full border-2 border-gray-200 dark:border-gray-600 rounded-xl p-3 bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                placeholder="Mínimo 8 caracteres"
-              />
+              <div class="relative">
+                <input
+                  v-model="form.password"
+                  :type="showPassword ? 'text' : 'password'"
+                  required
+                  class="w-full border-2 border-gray-200 dark:border-gray-600 rounded-xl p-3 pr-12 bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  placeholder="Mínimo 8 caracteres"
+                />
+                <button
+                  type="button"
+                  @click="showPassword = !showPassword"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  tabindex="-1"
+                >
+                  <svg
+                    v-if="showPassword"
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    ></path>
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    ></path>
+                  </svg>
+                  <svg
+                    v-else
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
             </div>
 
             <!-- Confirmar Contraseña (solo en creación) -->
@@ -462,28 +498,56 @@
               >
                 Confirmar contraseña *
               </label>
-              <input
-                v-model="form.password_confirmation"
-                type="password"
-                required
-                class="w-full border-2 border-gray-200 dark:border-gray-600 rounded-xl p-3 bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                placeholder="Confirmar contraseña"
-              />
-            </div>
-
-            <!-- Rol (solo lectura) -->
-            <div>
-              <label
-                class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Rol
-              </label>
-              <input
-                type="text"
-                value="Administrador"
-                disabled
-                class="w-full border-2 border-gray-200 dark:border-gray-600 rounded-xl p-3 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-              />
+              <div class="relative">
+                <input
+                  v-model="form.password_confirmation"
+                  :type="showPasswordConfirm ? 'text' : 'password'"
+                  required
+                  class="w-full border-2 border-gray-200 dark:border-gray-600 rounded-xl p-3 pr-12 bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  placeholder="Confirmar contraseña"
+                />
+                <button
+                  type="button"
+                  @click="showPasswordConfirm = !showPasswordConfirm"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  tabindex="-1"
+                >
+                  <svg
+                    v-if="showPasswordConfirm"
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    ></path>
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    ></path>
+                  </svg>
+                  <svg
+                    v-else
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
             </div>
 
             <!-- Footer del Modal -->
@@ -548,6 +612,8 @@ const currentPage = ref(1);
 const itemsPerPage = 10;
 const admins = ref([]);
 const error = ref("");
+const showPassword = ref(false);
+const showPasswordConfirm = ref(false);
 
 const form = reactive({
   id: null,
@@ -555,7 +621,7 @@ const form = reactive({
   email: "",
   password: "",
   password_confirmation: "",
-  rol: "admin",
+  rol: "administrador",
 });
 
 const totalPages = computed(() => Math.ceil(admins.value.length / itemsPerPage));
@@ -571,22 +637,64 @@ const resetForm = () => {
   form.email = "";
   form.password = "";
   form.password_confirmation = "";
-  form.rol = "admin";
+  form.rol = "administrador";
   error.value = "";
+  showPassword.value = false;
+  showPasswordConfirm.value = false;
 };
 
 const loadAdmins = async () => {
   loading.value = true;
   try {
-    const { data } = await usuariosWebService.getAll({
-      rol: "admin",
+    const response = await usuariosWebService.getAll({
+      rol: "administrador",
       search: searchQuery.value,
     });
-    admins.value = data?.data || [];
-  } catch {
+
+    // 🔍 DEBUG: Ver estructura completa
+    console.log("📦 Respuesta COMPLETA:", JSON.stringify(response, null, 2));
+    console.log("📦 response.data:", response.data);
+    console.log("📦 response.data.data:", response.data?.data);
+    console.log("📦 Tipo de response.data:", typeof response.data);
+    console.log("📦 Tipo de response.data.data:", typeof response.data?.data);
+
+    // Intentar diferentes estructuras posibles
+    let dataArray;
+
+    if (response.data?.data?.data && Array.isArray(response.data.data.data)) {
+      // Laravel con paginación: { success: true, data: { data: [...], current_page: 1 } }
+      dataArray = response.data.data.data;
+      console.log("✅ Formato detectado: PAGINADO (response.data.data.data)");
+    } else if (Array.isArray(response.data?.data)) {
+      // Laravel array directo: { success: true, data: [...] }
+      dataArray = response.data.data;
+      console.log("✅ Formato detectado: ARRAY DIRECTO (response.data.data)");
+    } else if (Array.isArray(response.data)) {
+      // Formato simple: [...]
+      dataArray = response.data;
+      console.log("✅ Formato detectado: SIMPLE (response.data)");
+    } else {
+      console.error("❌ Formato NO RECONOCIDO");
+      console.error("Estructura recibida:", response);
+      dataArray = [];
+    }
+
+    admins.value = dataArray;
+
+    console.log("✅ Total admins cargados:", admins.value.length);
+    if (admins.value.length > 0) {
+      console.log("✅ Primer admin:", admins.value[0]);
+    } else {
+      console.warn("⚠️ Array vacío después de parsear");
+    }
+  } catch (error) {
+    console.error("❌ Error cargando admins:", error);
+    console.error("❌ Error completo:", error.response);
+    admins.value = [];
     alert.error("Error", "No se pudieron cargar los administradores");
+  } finally {
+    loading.value = false;
   }
-  loading.value = false;
 };
 
 const openCreateModal = () => {
@@ -602,15 +710,30 @@ const openEditModal = (admin) => {
   showModal.value = true;
 };
 
-const closeModal = () => (showModal.value = false);
+const closeModal = () => {
+  showModal.value = false;
+  resetForm();
+};
 
 const handleSubmit = async () => {
   submitting.value = true;
   error.value = "";
+
   try {
-    const payload = { nombre: form.nombre, email: form.email, rol: "admin" };
+    const payload = {
+      nombre: form.nombre.trim(),
+      email: form.email.trim(),
+      rol: "administrador",
+      estado: "autorizado",
+    };
 
     if (modalMode.value === "create") {
+      if (form.password !== form.password_confirmation) {
+        error.value = "Las contraseñas no coinciden";
+        submitting.value = false;
+        return;
+      }
+
       payload.password = form.password;
       payload.password_confirmation = form.password_confirmation;
       await usuariosWebService.create(payload);
@@ -621,11 +744,13 @@ const handleSubmit = async () => {
     }
 
     await loadAdmins();
-    showModal.value = false;
+    closeModal();
   } catch (err) {
-    error.value = err.response?.data?.message || "No se pudo guardar";
+    console.error("❌ Error al guardar:", err.response?.data);
+    error.value = err.response?.data?.message || "No se pudo guardar el administrador";
+  } finally {
+    submitting.value = false;
   }
-  submitting.value = false;
 };
 
 const confirmDelete = async (admin) => {
@@ -639,8 +764,9 @@ const confirmDelete = async (admin) => {
     await usuariosWebService.delete(admin.id);
     await loadAdmins();
     alert.toastSuccess("Administrador eliminado");
-  } catch {
-    alert.error("Error", "No se pudo eliminar");
+  } catch (err) {
+    console.error("❌ Error al eliminar:", err);
+    alert.error("Error", "No se pudo eliminar el administrador");
   }
 };
 

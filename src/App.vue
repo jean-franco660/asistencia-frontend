@@ -17,12 +17,20 @@ const isEmptyLayout = computed(() => route.meta.layout === 'empty')
 const toggleSidebar = () => (sidebarOpen.value = !sidebarOpen.value)
 const closeSidebar = () => (sidebarOpen.value = false)
 
+// Auto-close sidebar on mobile when route changes
 watch(route, () => {
-  if (window.innerWidth >= 1024) sidebarOpen.value = true
+  if (window.innerWidth < 1024) {
+    sidebarOpen.value = false
+  }
 })
 
 // Init visual only
 onMounted(() => {
+  // Close sidebar by default on mobile/tablet
+  if (window.innerWidth < 1024) {
+    sidebarOpen.value = false
+  }
+  
   setTimeout(() => {
     isInitializing.value = false
   }, 300)
@@ -48,8 +56,12 @@ onMounted(() => {
     <div class="flex flex-1 pt-16">
       <Sidebar :is-open="sidebarOpen" @close="closeSidebar" />
       
-      <main class="flex-1 lg:ml-64 transition-all duration-300">
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main 
+        class="flex-1 transition-all duration-300 w-full"
+        :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-0'"
+      >
+        <!-- Responsive container with adaptive padding -->
+        <div class="w-full h-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
           <router-view />
         </div>
         <Footer />

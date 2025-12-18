@@ -1,25 +1,25 @@
 <template>
   <div
-    class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6"
+    class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-3 sm:p-4 md:p-6"
   >
-    <div class="max-w-7xl mx-auto space-y-6">
+    <div class="max-w-7xl mx-auto spacing-responsive">
       <!-- Header Premium -->
-      <div class="flex items-center justify-between">
-        <div>
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex-1 min-w-0">
           <h1
-            class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600"
+            class="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 truncate"
           >
             Gestión de Horarios
           </h1>
-          <p class="text-gray-500 dark:text-gray-400 mt-1">
+          <p class="text-sm sm:text-base text-gray-500 dark:text-gray-400 mt-1 truncate">
             Administra los turnos y horarios de tu institución
           </p>
         </div>
         <div
-          class="bg-gradient-to-r from-blue-600 to-purple-600 p-4 rounded-2xl shadow-lg"
+          class="bg-gradient-to-r from-blue-600 to-purple-600 p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-lg flex-shrink-0"
         >
           <svg
-            class="w-8 h-8 text-white"
+            class="w-6 h-6 sm:w-8 sm:h-8 text-white"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -34,13 +34,13 @@
         </div>
       </div>
 
-      <!-- Selector de institución Premium -->
+      <!-- Selector de institución Premium con Buscador -->
       <div
-        class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-6 backdrop-blur-sm"
+        class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 backdrop-blur-sm"
       >
         <div class="flex items-center gap-3 mb-3">
           <div
-            class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center"
+            class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0"
           >
             <svg
               class="w-6 h-6 text-white"
@@ -56,31 +56,313 @@
               ></path>
             </svg>
           </div>
-          <label class="text-lg font-semibold text-gray-800 dark:text-gray-100"
-            >Institución</label
+          <label
+            class="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100"
           >
+            Institución
+          </label>
         </div>
+
+        <!-- Mostrar selector solo si es admin o tiene múltiples instituciones -->
         <template v-if="mostrarSelector">
-          <select
-            v-model="institucionId"
-            @change="loadHorarios"
-            class="w-full border-2 border-gray-200 dark:border-gray-600 rounded-xl p-3 bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-            :disabled="loadingInstituciones"
-          >
-            <option value="">Seleccione institución</option>
-            <option v-for="i in instituciones" :key="i.id" :value="i.id">
-              {{ i.nombre }}
-            </option>
-          </select>
+          <div class="relative inst-search-horarios">
+            <div class="relative">
+              <svg
+                class="w-4 h-4 sm:w-5 sm:h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                ></path>
+              </svg>
+
+              <input
+                type="text"
+                v-model="institucionSearchQuery"
+                @input="onInputBuscarInstitucion"
+                @focus="onFocusInstitucion"
+                placeholder="Buscar institución por nombre o código..."
+                :disabled="loadingInstituciones"
+                class="w-full pl-9 sm:pl-10 pr-10 py-2.5 sm:py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm sm:text-base focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+
+              <!-- Spinner de búsqueda -->
+              <div
+                v-if="loadingInstitucionesBuscador"
+                class="absolute right-3 top-1/2 -translate-y-1/2"
+                title="Buscando..."
+              >
+                <svg
+                  class="animate-spin h-5 w-5 text-gray-400"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  />
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+              </div>
+
+              <!-- Botón limpiar -->
+              <button
+                v-else-if="institucionId"
+                @click="limpiarInstitucion"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                type="button"
+              >
+                <svg
+                  class="w-4 h-4 sm:w-5 sm:h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <!-- Dropdown de resultados -->
+            <div
+              v-if="showInstitucionDropdown && filteredInstituciones.length"
+              class="absolute z-50 w-full mt-1 max-h-64 overflow-auto bg-white dark:bg-gray-800 border-2 border-blue-300 dark:border-blue-600 rounded-xl shadow-2xl inst-dropdown-horarios"
+            >
+              <button
+                type="button"
+                v-for="inst in filteredInstituciones"
+                :key="inst.id"
+                @click="seleccionarInstitucion(inst)"
+                class="w-full px-4 py-3 text-left hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-900/30 dark:hover:to-purple-900/30 transition-all border-b border-gray-100 dark:border-gray-700 last:border-b-0 group"
+                :class="{
+                  'bg-blue-50 dark:bg-blue-900/20':
+                    String(institucionId) === String(inst.id),
+                  'first:rounded-t-xl last:rounded-b-xl': true,
+                }"
+              >
+                <div class="flex items-start gap-3">
+                  <div
+                    class="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center group-hover:scale-110 transition-transform"
+                  >
+                    <svg
+                      class="w-5 h-5 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                      />
+                    </svg>
+                  </div>
+
+                  <div class="flex-1 min-w-0">
+                    <p
+                      class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors"
+                    >
+                      {{ inst.nombre }}
+                    </p>
+                    <div class="flex items-center gap-2 mt-1">
+                      <span
+                        class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300"
+                      >
+                        <svg
+                          class="w-3 h-3 mr-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
+                          />
+                        </svg>
+                        {{ inst.codigo_modular_ie }}
+                      </span>
+
+                      <span
+                        v-if="inst.distrito"
+                        class="text-xs text-gray-500 dark:text-gray-400 truncate"
+                      >
+                        {{ inst.distrito }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div
+                    v-if="String(institucionId) === String(inst.id)"
+                    class="flex-shrink-0"
+                  >
+                    <div
+                      class="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center"
+                    >
+                      <svg
+                        class="w-4 h-4 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            <!-- No resultados -->
+            <div
+              v-if="
+                showInstitucionDropdown &&
+                institucionSearchQuery &&
+                !filteredInstituciones.length &&
+                !loadingInstitucionesBuscador
+              "
+              class="absolute z-50 w-full mt-1 p-4 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-xl shadow-xl inst-dropdown-horarios"
+            >
+              <div class="flex flex-col items-center gap-2 py-2">
+                <div
+                  class="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center"
+                >
+                  <svg
+                    class="w-6 h-6 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </div>
+                <p
+                  class="text-sm font-medium text-gray-700 dark:text-gray-300 text-center"
+                >
+                  No se encontraron instituciones
+                </p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 text-center">
+                  Intenta con otro término de búsqueda
+                </p>
+              </div>
+            </div>
+
+            <!-- Institución seleccionada -->
+            <div
+              v-if="institucionId"
+              class="mt-2 p-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl border-2 border-blue-300 dark:border-blue-700 shadow-sm"
+            >
+              <div class="flex items-center gap-3">
+                <div
+                  class="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center"
+                >
+                  <svg
+                    class="w-5 h-5 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                    />
+                  </svg>
+                </div>
+
+                <div class="flex-1 min-w-0">
+                  <p
+                    class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate"
+                  >
+                    {{ selectedInstitucionNombre || "Institución seleccionada" }}
+                  </p>
+                  <div class="flex items-center gap-2 mt-1">
+                    <span
+                      class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300"
+                    >
+                      <svg
+                        class="w-3 h-3 mr-1"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
+                        />
+                      </svg>
+                      {{ selectedInstitucionCodigo || "N/A" }}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  @click="limpiarInstitucion"
+                  class="flex-shrink-0 p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800 rounded-lg transition-all hover:scale-110"
+                  title="Quitar selección"
+                >
+                  <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
         </template>
+
+        <!-- Vista fija para supervisores con una sola institución -->
         <template v-else>
           <div
             class="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-xl p-4"
           >
-            <p class="font-semibold text-gray-800 dark:text-gray-100 text-lg">
+            <p
+              class="font-semibold text-gray-800 dark:text-gray-100 text-base sm:text-lg"
+            >
               <span v-if="loadingInstituciones">Cargando...</span>
               <span v-else>{{
-                instituciones.find((i) => i.id == institucionId)?.nombre
+                selectedInstitucionNombre || getInstitucionNombre(institucionId)
               }}</span>
             </p>
           </div>
@@ -90,11 +372,16 @@
       <!-- Botón crear Premium -->
       <div class="flex justify-end">
         <button
-          class="group relative bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed flex items-center gap-2"
+          class="group relative bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed flex items-center gap-2 text-sm sm:text-base"
           @click="openCreate"
           :disabled="!institucionId || loadingHorarios"
         >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            class="w-4 h-4 sm:w-5 sm:h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -102,7 +389,8 @@
               d="M12 4v16m8-8H4"
             ></path>
           </svg>
-          Registrar nuevo horario
+          <span class="hidden sm:inline">Registrar nuevo horario</span>
+          <span class="sm:hidden">Nuevo</span>
         </button>
       </div>
 
@@ -111,16 +399,16 @@
         class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
       >
         <div
-          class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-750 dark:to-gray-700 px-6 py-4 border-b border-gray-200 dark:border-gray-600"
+          class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-750 dark:to-gray-700 px-4 sm:px-6 py-4 border-b border-gray-200 dark:border-gray-600"
         >
           <h2
-            class="text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-3"
+            class="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-3"
           >
             <div
-              class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center"
+              class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0"
             >
               <svg
-                class="w-5 h-5 text-white"
+                class="w-4 h-4 sm:w-5 sm:h-5 text-white"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -142,7 +430,9 @@
           <div
             class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-600"
           ></div>
-          <p class="mt-4 text-gray-500 dark:text-gray-400">Cargando horarios...</p>
+          <p class="mt-4 text-sm sm:text-base text-gray-500 dark:text-gray-400">
+            Cargando horarios...
+          </p>
         </div>
 
         <div v-else class="overflow-x-auto">
@@ -152,50 +442,53 @@
                 class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-750 dark:to-gray-700"
               >
                 <th
-                  class="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider"
+                  class="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider"
                 >
                   Turno
                 </th>
                 <th
-                  class="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider"
+                  class="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider"
                 >
                   Entrada
                 </th>
                 <th
-                  class="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider"
+                  class="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider"
                 >
                   Salida
                 </th>
                 <th
-                  class="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider"
+                  class="hidden sm:table-cell px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider"
                 >
                   Días
                 </th>
                 <th
-                  class="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider"
+                  class="hidden md:table-cell px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider"
                 >
                   Tolerancia
                 </th>
                 <th
-                  class="px-6 py-4 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider"
+                  class="px-4 sm:px-6 py-3 sm:py-4 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider"
                 >
                   Acciones
                 </th>
               </tr>
             </thead>
+
             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
               <tr
                 v-for="h in horarios"
-                :key="`horario-${h.institucion_id || institucionId}-${h.id}-${h.nombre_turno}`"
+                :key="`horario-${h.institucion_id || institucionId}-${h.id}-${
+                  h.nombre_turno
+                }`"
                 class="hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors duration-150"
               >
-                <td class="px-6 py-4">
-                  <div class="flex items-center gap-3">
+                <td class="px-4 sm:px-6 py-3 sm:py-4">
+                  <div class="flex items-center gap-2 sm:gap-3">
                     <div
-                      class="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md"
+                      class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md flex-shrink-0"
                     >
                       <svg
-                        class="w-5 h-5 text-white"
+                        class="w-4 h-4 sm:w-5 sm:h-5 text-white"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -208,15 +501,20 @@
                         ></path>
                       </svg>
                     </div>
-                    <span class="font-semibold text-gray-800 dark:text-gray-200">{{
-                      h.nombre_turno
-                    }}</span>
+                    <span
+                      class="font-semibold text-gray-800 dark:text-gray-200 text-sm sm:text-base"
+                    >
+                      {{ h.nombre_turno }}
+                    </span>
                   </div>
                 </td>
-                <td class="px-6 py-4">
-                  <div class="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+
+                <td class="px-4 sm:px-6 py-3 sm:py-4">
+                  <div
+                    class="flex items-center gap-1 sm:gap-2 text-gray-700 dark:text-gray-300"
+                  >
                     <svg
-                      class="w-4 h-4 text-green-500"
+                      class="w-3 h-3 sm:w-4 sm:h-4 text-green-500 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -228,13 +526,18 @@
                         d="M13 5l7 7-7 7M5 5l7 7-7 7"
                       ></path>
                     </svg>
-                    <span class="font-medium">{{ formatearHora(h.hora_entrada) }}</span>
+                    <span class="font-medium text-xs sm:text-sm">{{
+                      formatearHora(h.hora_entrada)
+                    }}</span>
                   </div>
                 </td>
-                <td class="px-6 py-4">
-                  <div class="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+
+                <td class="px-4 sm:px-6 py-3 sm:py-4">
+                  <div
+                    class="flex items-center gap-1 sm:gap-2 text-gray-700 dark:text-gray-300"
+                  >
                     <svg
-                      class="w-4 h-4 text-red-500"
+                      class="w-3 h-3 sm:w-4 sm:h-4 text-red-500 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -246,32 +549,37 @@
                         d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
                       ></path>
                     </svg>
-                    <span class="font-medium">{{ formatearHora(h.hora_salida) }}</span>
+                    <span class="font-medium text-xs sm:text-sm">{{
+                      formatearHora(h.hora_salida)
+                    }}</span>
                   </div>
                 </td>
-                <td class="px-6 py-4">
+
+                <td class="hidden sm:table-cell px-4 sm:px-6 py-3 sm:py-4">
                   <span
-                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                    class="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
                   >
-                    {{ formatearDias(h.dias_semana) }}
+                    {{ formatearDias(h.dias_laborales || h.dias_semana) }}
                   </span>
                 </td>
-                <td class="px-6 py-4">
+
+                <td class="hidden md:table-cell px-4 sm:px-6 py-3 sm:py-4">
                   <span
-                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+                    class="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
                   >
                     {{ h.tolerancia_minutos }} min
                   </span>
                 </td>
-                <td class="px-6 py-4">
-                  <div class="flex items-center justify-center gap-3">
+
+                <td class="px-4 sm:px-6 py-3 sm:py-4">
+                  <div class="flex items-center justify-center gap-2 sm:gap-3">
                     <button
                       @click="openEdit(h)"
-                      class="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900 rounded-lg transition-all hover:scale-110"
+                      class="p-1.5 sm:p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900 rounded-lg transition-all hover:scale-110"
                       title="Editar"
                     >
                       <svg
-                        class="w-5 h-5"
+                        class="w-4 h-4 sm:w-5 sm:h-5"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -284,13 +592,14 @@
                         ></path>
                       </svg>
                     </button>
+
                     <button
                       @click="confirmDelete(h.id)"
-                      class="p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900 rounded-lg transition-all hover:scale-110"
+                      class="p-1.5 sm:p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900 rounded-lg transition-all hover:scale-110"
                       title="Eliminar"
                     >
                       <svg
-                        class="w-5 h-5"
+                        class="w-4 h-4 sm:w-5 sm:h-5"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -306,6 +615,7 @@
                   </div>
                 </td>
               </tr>
+
               <tr v-if="!horarios.length">
                 <td colspan="6" class="px-6 py-12 text-center">
                   <div class="flex flex-col items-center gap-3">
@@ -326,10 +636,12 @@
                         ></path>
                       </svg>
                     </div>
-                    <p class="text-gray-500 dark:text-gray-400 font-medium">
+                    <p
+                      class="text-gray-500 dark:text-gray-400 font-medium text-sm sm:text-base"
+                    >
                       No hay horarios registrados
                     </p>
-                    <p class="text-gray-400 dark:text-gray-500 text-sm">
+                    <p class="text-gray-400 dark:text-gray-500 text-xs sm:text-sm">
                       Comienza creando un nuevo horario
                     </p>
                   </div>
@@ -349,11 +661,11 @@
         @click.self="closeModal"
       >
         <div
-          class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-lg transform transition-all"
+          class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-lg transform transition-all max-h-[90vh] overflow-y-auto"
         >
           <!-- Header del Modal -->
           <div
-            class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-5 rounded-t-3xl"
+            class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-5 rounded-t-3xl sticky top-0 z-10"
           >
             <div class="flex items-center justify-between">
               <h3 class="text-xl font-bold text-white flex items-center gap-3">
@@ -376,6 +688,7 @@
                 </div>
                 {{ editMode ? "Editar Horario" : "Registrar Horario" }}
               </h3>
+
               <button
                 @click="closeModal"
                 class="text-white/80 hover:text-white hover:bg-white/20 rounded-lg p-1 transition-all"
@@ -413,9 +726,9 @@
                   class="w-full border-2 border-gray-200 dark:border-gray-600 rounded-xl p-3 bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 >
                   <option value="">Seleccione un turno</option>
-                  <option value="Mañana">☀️ Mañana</option>
-                  <option value="Tarde">🌤️ Tarde</option>
-                  <option value="Noche">🌙 Noche</option>
+                  <option value="MAÑANA">☀️ Mañana</option>
+                  <option value="TARDE">🌤️ Tarde</option>
+                  <option value="NOCHE">🌙 Noche</option>
                 </select>
               </div>
 
@@ -426,13 +739,11 @@
                 >
                   Hora de Entrada
                 </label>
-                <div class="relative">
-                  <input
-                    type="time"
-                    v-model="form.hora_entrada"
-                    class="w-full border-2 border-gray-200 dark:border-gray-600 rounded-xl p-3 bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  />
-                </div>
+                <input
+                  type="time"
+                  v-model="form.hora_entrada"
+                  class="w-full border-2 border-gray-200 dark:border-gray-600 rounded-xl p-3 bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                />
               </div>
 
               <!-- Hora Salida -->
@@ -442,13 +753,11 @@
                 >
                   Hora de Salida
                 </label>
-                <div class="relative">
-                  <input
-                    type="time"
-                    v-model="form.hora_salida"
-                    class="w-full border-2 border-gray-200 dark:border-gray-600 rounded-xl p-3 bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  />
-                </div>
+                <input
+                  type="time"
+                  v-model="form.hora_salida"
+                  class="w-full border-2 border-gray-200 dark:border-gray-600 rounded-xl p-3 bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                />
               </div>
 
               <!-- Tolerancia -->
@@ -507,17 +816,18 @@
 
           <!-- Footer del Modal -->
           <div
-            class="bg-gray-50 dark:bg-gray-750 px-6 py-4 rounded-b-3xl flex justify-end gap-3"
+            class="bg-gray-50 dark:bg-gray-750 px-6 py-4 rounded-b-3xl flex flex-col sm:flex-row justify-end gap-3 sticky bottom-0"
           >
             <button
-              class="px-6 py-2.5 rounded-xl font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-all disabled:opacity-50"
+              class="px-6 py-2.5 rounded-xl font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-all disabled:opacity-50 order-2 sm:order-1"
               @click="closeModal"
               :disabled="saving"
             >
               Cancelar
             </button>
+
             <button
-              class="px-6 py-2.5 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:shadow-lg transform hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100 flex items-center gap-2"
+              class="px-6 py-2.5 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:shadow-lg transform hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2 order-1 sm:order-2"
               @click="saveHorario"
               :disabled="saving"
             >
@@ -552,7 +862,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import api, { institucionesService } from "@/services/api";
 import { useAuthStore } from "@/store/auth";
 import { useAlert } from "@/utils/sweetalert";
@@ -560,14 +870,28 @@ import { useAlert } from "@/utils/sweetalert";
 const auth = useAuthStore();
 const alert = useAlert();
 
-const instituciones = ref([]);
+const instituciones = ref([]); // cache local (lo que venga de /instituciones/mias)
 const horarios = ref([]);
 const institucionId = ref("");
+
 const loadingInstituciones = ref(false);
 const loadingHorarios = ref(false);
 const saving = ref(false);
 const modalOpen = ref(false);
 const editMode = ref(false);
+
+// ✅ Buscador server-side (mismo patrón que Docentes)
+const institucionSearchQuery = ref("");
+const showInstitucionDropdown = ref(false);
+const filteredInstituciones = ref([]);
+const loadingInstitucionesBuscador = ref(false);
+
+let instDebounce = null;
+let instAbort = null;
+
+// cache de institución seleccionada (evita depender del array completo)
+const selectedInstitucionNombre = ref(null);
+const selectedInstitucionCodigo = ref(null);
 
 const form = ref({
   id: null,
@@ -589,110 +913,223 @@ const diasOpciones = [
   { nombre: "Domingo", valor: "D" },
 ];
 
-const mostrarSelector = computed(
-  () => auth.user?.rol === "admin" || instituciones.value.length > 1
-);
+const mostrarSelector = computed(() => {
+  return (
+    auth.user?.rol === "administrador" ||
+    auth.user?.rol === "super_admin" ||
+    instituciones.value.length > 1
+  );
+});
 
 const formatearDias = (dias) => {
   if (!dias) return "Sin días";
   if (Array.isArray(dias)) return dias.join(", ");
   try {
-    if (dias.startsWith("[")) return JSON.parse(dias).join(", ");
+    if (typeof dias === "string" && dias.startsWith("["))
+      return JSON.parse(dias).join(", ");
   } catch {}
-  return dias.includes(",")
-    ? dias
-        .split(",")
-        .map((d) => d.trim())
-        .join(", ")
-    : dias;
+  if (typeof dias === "string" && dias.includes(",")) {
+    return dias
+      .split(",")
+      .map((d) => d.trim())
+      .join(", ");
+  }
+  return dias;
 };
 
 const formatearHora = (hora) => (hora && hora.length > 5 ? hora.substring(0, 5) : hora);
 
-// Cargar instituciones
+// =========================
+// Instituciones (server-side)
+// =========================
+const onFocusInstitucion = () => {
+  showInstitucionDropdown.value = true;
+
+  // si ya hay texto, buscar; si no, mostrar sugerencias (primeras 10 de cache)
+  const term = (institucionSearchQuery.value || "").trim();
+  if (!term) {
+    filteredInstituciones.value = instituciones.value.slice(0, 10);
+  } else {
+    onInputBuscarInstitucion();
+  }
+};
+
+const onInputBuscarInstitucion = () => {
+  const term = (institucionSearchQuery.value || "").trim();
+  showInstitucionDropdown.value = true;
+
+  // si vacío, sugerencias de cache
+  if (!term) {
+    if (instAbort) instAbort.abort();
+    loadingInstitucionesBuscador.value = false;
+    filteredInstituciones.value = instituciones.value.slice(0, 10);
+    return;
+  }
+
+  if (instDebounce) clearTimeout(instDebounce);
+
+  instDebounce = setTimeout(async () => {
+    if (instAbort) instAbort.abort();
+    instAbort = new AbortController();
+
+    loadingInstitucionesBuscador.value = true;
+
+    try {
+      // ✅ /instituciones/mias filtra por rol en backend
+      const r = await institucionesService.searchMias(term, 10, {
+        signal: instAbort.signal,
+      });
+      filteredInstituciones.value = Array.isArray(r.data) ? r.data : [];
+    } catch (e) {
+      if (e?.name !== "AbortError" && e?.code !== "ERR_CANCELED") {
+        console.error("❌ Error buscando instituciones:", e);
+        filteredInstituciones.value = [];
+      }
+    } finally {
+      loadingInstitucionesBuscador.value = false;
+    }
+  }, 300);
+};
+
+const seleccionarInstitucion = async (inst) => {
+  institucionId.value = inst.id;
+  institucionSearchQuery.value = inst.nombre;
+
+  selectedInstitucionNombre.value = inst.nombre;
+  selectedInstitucionCodigo.value = inst.codigo_modular_ie;
+
+  showInstitucionDropdown.value = false;
+  await loadHorarios();
+};
+
+const limpiarInstitucion = () => {
+  if (instAbort) instAbort.abort();
+  if (instDebounce) clearTimeout(instDebounce);
+
+  institucionId.value = "";
+  institucionSearchQuery.value = "";
+  selectedInstitucionNombre.value = null;
+  selectedInstitucionCodigo.value = null;
+
+  showInstitucionDropdown.value = false;
+  filteredInstituciones.value = [];
+  horarios.value = [];
+};
+
+const getInstitucionNombre = (institucionIdParam) => {
+  const inst = instituciones.value.find(
+    (i) => String(i.id) === String(institucionIdParam)
+  );
+  return inst?.nombre || "Desconocida";
+};
+
+const getInstitucionCodigo = (institucionIdParam) => {
+  const inst = instituciones.value.find(
+    (i) => String(i.id) === String(institucionIdParam)
+  );
+  return inst?.codigo_modular_ie || "N/A";
+};
+
+// ✅ Click-outside robusto (no depende de clases genéricas)
+const handleClickOutside = (event) => {
+  const insideSearch = event.target.closest(".inst-search-horarios");
+  const insideDropdown = event.target.closest(".inst-dropdown-horarios");
+  if (!insideSearch && !insideDropdown) {
+    showInstitucionDropdown.value = false;
+  }
+};
+
+// =========================
+// Load instituciones
+// =========================
 const loadInstituciones = async () => {
   loadingInstituciones.value = true;
-  try {
-    if (auth.user?.rol === "admin") {
-      const r = await institucionesService.getAll();
-      instituciones.value = r.data?.data ?? [];
-    } else {
-      // Para directores: obtener instituciones asignadas
-      try {
-        const r = await api.get("/instituciones/mias");
-        const misInstituciones = r.data?.data || r.data || [];
-        
-        if (misInstituciones.length > 0) {
-          instituciones.value = misInstituciones;
-        } else {
-          // Fallback: obtener desde dashboard
-          const dashboardRes = await api.get("/director/dashboard");
-          const nombreInstitucion = dashboardRes.data.institucion;
-          
-          const todasRes = await institucionesService.getAll();
-          const todas = todasRes.data?.data || [];
-          const institucionEncontrada = todas.find(i => i.nombre === nombreInstitucion);
-          
-          if (institucionEncontrada) {
-            instituciones.value = [institucionEncontrada];
-          } else {
-            throw new Error("No se pudo determinar la institución del director");
-          }
-        }
-      } catch (error) {
-        console.error("❌ Error obteniendo instituciones del director:", error);
-        alert.error(
-          "Error de configuración", 
-          "No se pudo obtener la institución asignada. Por favor contacta al administrador."
-        );
-        loadingInstituciones.value = false;
-        return;
-      }
-    }
 
+  try {
+    // ✅ siempre usar /instituciones/mias (backend filtra por rol)
+    const r = await institucionesService.getMias();
+    const list = r.data?.data || r.data || [];
+
+    instituciones.value = Array.isArray(list) ? list : [];
+
+    // si hay al menos 1, seleccionar la primera por defecto
     if (instituciones.value.length >= 1) {
-      institucionId.value = instituciones.value[0].id;
+      const inst = instituciones.value[0];
+
+      institucionId.value = inst.id;
+      institucionSearchQuery.value = inst.nombre;
+
+      selectedInstitucionNombre.value = inst.nombre;
+      selectedInstitucionCodigo.value = inst.codigo_modular_ie;
+
+      // precargar sugerencias
+      filteredInstituciones.value = instituciones.value.slice(0, 10);
+
       await loadHorarios();
+    } else {
+      // no hay instituciones asignadas
+      institucionId.value = "";
+      institucionSearchQuery.value = "";
+      horarios.value = [];
     }
   } catch (e) {
     console.error("❌ Error cargando instituciones:", e);
-    alert.error("Error", "Error cargando instituciones");
+    alert.error("Error", "No se pudieron cargar las instituciones");
+  } finally {
+    loadingInstituciones.value = false;
   }
-  loadingInstituciones.value = false;
 };
 
-// Cargar horarios según institución
+// =========================
+// Load horarios
+// =========================
 const loadHorarios = async () => {
   horarios.value = [];
-  
-  if (!institucionId.value) {
-    return;
-  }
+  if (!institucionId.value) return;
 
   loadingHorarios.value = true;
 
   try {
+    // asumo tu backend filtra por institucion_id
     const r = await api.get(`/horarios?institucion_id=${institucionId.value}`);
     const data = Array.isArray(r.data) ? r.data : r.data?.data ?? [];
-    
-    horarios.value = data.filter(
+
+    horarios.value = (Array.isArray(data) ? data : []).filter(
       (h) => String(h.institucion_id) === String(institucionId.value)
     );
   } catch (e) {
-    alert.error("Error", "No se pudieron cargar los horarios");
+    console.error("❌ Error cargando horarios:", e);
+    if (e.response?.status === 422) {
+      const errors = e.response?.data?.errors;
+      if (errors) {
+        const errorMsg = Object.entries(errors)
+          .map(([field, messages]) => `${field}: ${messages.join(", ")}`)
+          .join("\n");
+        alert.error("Error de validación", errorMsg);
+      } else {
+        alert.error(
+          "Error de validación",
+          e.response?.data?.message || "Datos inválidos"
+        );
+      }
+    } else {
+      alert.error("Error", "No se pudieron cargar los horarios");
+    }
     horarios.value = [];
   } finally {
     loadingHorarios.value = false;
   }
 };
 
-// Abrir modal para crear
+// =========================
+// Modal create/edit
+// =========================
 const openCreate = () => {
   if (!institucionId.value) {
     alert.error("Error", "Debe seleccionar una institución primero");
     return;
   }
-  
+
   editMode.value = false;
   form.value = {
     id: null,
@@ -706,14 +1143,33 @@ const openCreate = () => {
   modalOpen.value = true;
 };
 
-// Abrir modal para editar
 const openEdit = (h) => {
   editMode.value = true;
-  let diasArray = Array.isArray(h.dias_semana)
-    ? h.dias_semana
-    : typeof h.dias_semana === "string"
-    ? h.dias_semana.split(",").map((d) => d.trim())
-    : [];
+
+  const parseDias = (val) => {
+    if (!val) return [];
+    if (Array.isArray(val)) return val;
+    if (typeof val === "string") {
+      const s = val.trim();
+      if (!s) return [];
+      if (s.startsWith("[")) {
+        try {
+          const arr = JSON.parse(s);
+          return Array.isArray(arr) ? arr : [];
+        } catch {
+          // fallback a split
+        }
+      }
+      return s
+        .split(",")
+        .map((d) => d.trim())
+        .filter(Boolean);
+    }
+    return [];
+  };
+
+  const diasArray = parseDias(h.dias_laborales || h.dias_semana);
+
   form.value = {
     id: h.id,
     institucion_id: h.institucion_id || institucionId.value,
@@ -723,10 +1179,17 @@ const openEdit = (h) => {
     tolerancia_minutos: h.tolerancia_minutos,
     dias_semana: diasArray,
   };
+
   modalOpen.value = true;
 };
 
-// Guardar horario
+const closeModal = () => {
+  if (!saving.value) modalOpen.value = false;
+};
+
+// =========================
+// Save / Delete
+// =========================
 const saveHorario = async () => {
   if (!form.value.nombre_turno) return alert.error("Validación", "Seleccione un turno");
   if (!form.value.hora_entrada || !form.value.hora_salida)
@@ -734,9 +1197,96 @@ const saveHorario = async () => {
   if (!form.value.dias_semana.length)
     return alert.error("Validación", "Seleccione al menos un día");
 
+  const formatoHora12 = (hora24) => {
+    const [horas, minutos] = hora24.split(":");
+    let h = parseInt(horas, 10);
+    const ampm = h >= 12 ? "PM" : "AM";
+    h = h % 12 || 12;
+    return `${h}:${minutos} ${ampm}`;
+  };
+
+  const validarHorarioTurno = () => {
+    const turnoNombre = (form.value.nombre_turno || "").toLowerCase();
+    const entrada = form.value.hora_entrada;
+    const salida = form.value.hora_salida;
+
+    const rangos = {
+      mañana: {
+        entradaMin: "05:00",
+        entradaMax: "13:00",
+        salidaMax: "14:00",
+        nombre: "Turno Mañana",
+        rangoEntrada: "5:00 AM - 1:00 PM",
+      },
+      tarde: {
+        entradaMin: "13:00",
+        entradaMax: "19:00",
+        salidaMax: "20:00",
+        nombre: "Turno Tarde",
+        rangoEntrada: "1:00 PM - 7:00 PM",
+      },
+      noche: {
+        entradaMin: "19:00",
+        entradaMax: "23:59",
+        salidaMax: "24:59",
+        nombre: "Turno Noche",
+        rangoEntrada: "7:00 PM - 11:59 PM",
+      },
+    };
+
+    let tipoTurno = null;
+    if (turnoNombre.includes("mañana") || turnoNombre.includes("matutino"))
+      tipoTurno = "mañana";
+    else if (turnoNombre.includes("tarde") || turnoNombre.includes("vespertino"))
+      tipoTurno = "tarde";
+    else if (turnoNombre.includes("noche") || turnoNombre.includes("nocturno"))
+      tipoTurno = "noche";
+
+    if (!tipoTurno) {
+      return {
+        valido: false,
+        mensaje: "El nombre del turno debe contener 'Mañana', 'Tarde' o 'Noche'",
+      };
+    }
+
+    const rango = rangos[tipoTurno];
+
+    if (entrada < rango.entradaMin || entrada > rango.entradaMax) {
+      return {
+        valido: false,
+        mensaje: `La hora de entrada (${formatoHora12(entrada)}) no corresponde al ${
+          rango.nombre
+        }. Rango permitido: ${rango.rangoEntrada}`,
+      };
+    }
+
+    if (salida > rango.salidaMax) {
+      return {
+        valido: false,
+        mensaje: `La hora de salida (${formatoHora12(salida)}) excede el límite del ${
+          rango.nombre
+        }. Máximo permitido: ${formatoHora12(rango.salidaMax)}`,
+      };
+    }
+
+    return { valido: true };
+  };
+
+  const validacion = validarHorarioTurno();
+  if (!validacion.valido) return alert.error("Validación de Turno", validacion.mensaje);
+
+  if (form.value.hora_entrada >= form.value.hora_salida) {
+    return alert.error(
+      "Validación",
+      "La hora de salida debe ser posterior a la hora de entrada"
+    );
+  }
+
   saving.value = true;
+
   try {
-    const sanitizar = (h) => (h.length > 5 ? h.substring(0, 5) : h);
+    const sanitizar = (h) => (h && h.length > 5 ? h.substring(0, 5) : h);
+
     const payload = {
       institucion_id: form.value.institucion_id,
       nombre_turno: form.value.nombre_turno,
@@ -744,6 +1294,7 @@ const saveHorario = async () => {
       hora_salida: sanitizar(form.value.hora_salida),
       tolerancia_minutos: form.value.tolerancia_minutos,
       dias_semana: form.value.dias_semana,
+      activo: true,
     };
 
     if (editMode.value) {
@@ -753,44 +1304,73 @@ const saveHorario = async () => {
       await api.post(`/horarios`, payload);
       alert.toastSuccess("Horario registrado");
     }
+
     await loadHorarios();
     modalOpen.value = false;
   } catch (e) {
+    console.error("❌ Error guardando horario:", e);
+
     if (e.response?.data?.errors) {
+      const traducciones = {
+        hora_entrada: "Hora de entrada",
+        hora_salida: "Hora de salida",
+        nombre_turno: "Nombre del turno",
+        tolerancia_minutos: "Tolerancia en minutos",
+        dias_semana: "Días de la semana",
+        institucion_id: "Institución",
+      };
+
+      const traducirMsg = (msg) => {
+        if (msg.includes("required")) return "es requerido";
+        if (msg.includes("invalid")) return "no es válido";
+        if (msg.includes("must be")) return "no cumple el formato requerido";
+        return msg;
+      };
+
       const errores = Object.entries(e.response.data.errors)
-        .map(([campo, msg]) => `${campo}: ${msg.join(", ")}`)
+        .map(
+          ([campo, msgs]) =>
+            `${traducciones[campo] || campo}: ${(msgs || []).map(traducirMsg).join(", ")}`
+        )
         .join("<br>");
+
       alert.error("Errores de validación", errores);
     } else {
       alert.error("Error", e.response?.data?.message || "Error guardando horario");
     }
+  } finally {
+    saving.value = false;
   }
-  saving.value = false;
 };
 
-// Cerrar modal
-const closeModal = () => {
-  if (!saving.value) modalOpen.value = false;
-};
-
-// Confirmar y eliminar
 const confirmDelete = async (id) => {
   const r = await alert.confirmDelete(
     "¿Eliminar horario?",
     "Esta acción no se puede deshacer"
   );
   if (!r.isConfirmed) return;
+
   try {
     await api.delete(`/horarios/${id}`);
     await loadHorarios();
     alert.toastSuccess("Horario eliminado");
-  } catch {
+  } catch (e) {
+    console.error("❌ Error eliminando horario:", e);
     alert.error("Error", "No se pudo eliminar el horario");
   }
 };
 
-// Montaje inicial
-onMounted(loadInstituciones);
+// Lifecycle
+onMounted(() => {
+  document.addEventListener("click", handleClickOutside);
+  loadInstituciones();
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener("click", handleClickOutside);
+  if (instAbort) instAbort.abort();
+  if (instDebounce) clearTimeout(instDebounce);
+});
 </script>
 
 <style scoped>

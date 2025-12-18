@@ -1,24 +1,24 @@
 <template>
   <div
-    class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900 p-6"
+    class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900 p-3 sm:p-4 md:p-6"
   >
-    <div class="max-w-7xl mx-auto space-y-8">
+    <div class="max-w-7xl mx-auto spacing-responsive">
       <!-- Header con animación -->
       <div class="relative">
         <div
           class="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl opacity-10 blur-3xl"
         ></div>
         <div
-          class="relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-white/20 dark:border-gray-700/50"
+          class="relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-xl border border-white/20 dark:border-gray-700/50"
         >
-          <div class="flex items-start justify-between">
-            <div>
-              <div class="flex items-center gap-3 mb-2">
+          <div class="flex flex-col sm:flex-row items-start sm:items-start justify-between gap-4">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 sm:gap-3 mb-2">
                 <div
-                  class="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-lg"
+                  class="p-2 sm:p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl sm:rounded-2xl shadow-lg"
                 >
                   <svg
-                    class="w-8 h-8 text-white"
+                    class="w-6 h-6 sm:w-8 sm:h-8 text-white"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -33,12 +33,12 @@
                 </div>
                 <div>
                   <h1
-                    class="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent"
+                    class="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent"
                   >
                     Dashboard General
                   </h1>
-                  <p class="text-gray-600 dark:text-gray-400 mt-1">
-                    Resumen completo del sistema · {{ currentDate }}
+                  <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    <span class="hidden sm:inline">Resumen completo del sistema · </span>{{ currentDate }}
                   </p>
                 </div>
               </div>
@@ -128,7 +128,7 @@
               class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-2xl"
             ></div>
 
-            <div class="relative p-6">
+            <div class="relative p-4 sm:p-6">
               <div class="flex items-start justify-between mb-4">
                 <div
                   class="p-3 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-500"
@@ -338,38 +338,6 @@
             </div>
           </template>
 
-          <!-- Día No Laborable -->
-          <div
-            class="group relative overflow-hidden bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/20 dark:border-gray-700/50 hover:shadow-2xl transition-all duration-500 hover:-translate-y-1"
-          >
-            <div
-              class="absolute inset-0 bg-gradient-to-br from-gray-500/10 to-slate-500/10 dark:from-gray-600/20 dark:to-slate-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-            ></div>
-            <div
-              class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-gray-400/20 to-slate-400/20 rounded-full blur-2xl"
-            ></div>
-
-            <div class="relative p-6">
-              <div class="flex items-start justify-between mb-4">
-                <div
-                  class="p-3 bg-gradient-to-br from-gray-500 to-slate-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-500"
-                >
-                  <XCircleIcon class="w-6 h-6 text-white" />
-                </div>
-              </div>
-
-              <div>
-                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-                  ¿Es día no laborable?
-                </p>
-                <h3
-                  class="text-3xl font-bold bg-gradient-to-r from-gray-600 to-slate-600 dark:from-gray-400 dark:to-slate-400 bg-clip-text text-transparent"
-                >
-                  {{ hoyNoLaborable ? "Sí" : "No" }}
-                </h3>
-              </div>
-            </div>
-          </div>
         </div>
 
         <!-- Asistencias Recientes + Instituciones -->
@@ -383,15 +351,23 @@
             ></div>
 
             <div class="relative p-8">
-              <div class="flex items-center gap-3 mb-6">
-                <div
-                  class="p-2 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl"
-                >
-                  <CheckCircleIcon class="w-5 h-5 text-white" />
+              <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="p-2 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl"
+                  >
+                    <CheckCircleIcon class="w-5 h-5 text-white" />
+                  </div>
+                  <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+                    Asistencias Recientes
+                  </h2>
                 </div>
-                <h2 class="text-xl font-bold text-gray-900 dark:text-white">
-                  Asistencias Recientes
-                </h2>
+                <router-link
+                  to="/asistencias"
+                  class="text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
+                >
+                  Ver todas →
+                </router-link>
               </div>
 
               <div
@@ -406,7 +382,11 @@
                 <p class="text-sm">No hay asistencias registradas hoy</p>
               </div>
 
-              <div v-else class="space-y-3">
+              <!-- Contenedor con scroll para asistencias -->
+              <div 
+                v-else 
+                class="space-y-3 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
+              >
                 <div
                   v-for="a in recentAttendances"
                   :key="a.id"
@@ -458,13 +438,21 @@
             ></div>
 
             <div class="relative p-8">
-              <div class="flex items-center gap-3 mb-6">
-                <div class="p-2 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl">
-                  <BuildingOfficeIcon class="w-5 h-5 text-white" />
+              <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                  <div class="p-2 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl">
+                    <BuildingOfficeIcon class="w-5 h-5 text-white" />
+                  </div>
+                  <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+                    Instituciones Activas
+                  </h2>
                 </div>
-                <h2 class="text-xl font-bold text-gray-900 dark:text-white">
-                  Instituciones Activas
-                </h2>
+                <router-link
+                  to="/instituciones"
+                  class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                >
+                  Ver todas →
+                </router-link>
               </div>
 
               <div
@@ -479,7 +467,11 @@
                 <p class="text-sm">No hay instituciones registradas</p>
               </div>
 
-              <div v-else class="space-y-3">
+              <!-- Contenedor con scroll para instituciones -->
+              <div 
+                v-else 
+                class="space-y-3 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
+              >
                 <div
                   v-for="i in activeInstitutions"
                   :key="i.id"
@@ -509,7 +501,7 @@
           </div>
         </div>
 
-        <!-- Gráfico Semanal -->
+        <!-- Gráfico Mensual - Pie Chart -->
         <div
           class="relative overflow-hidden bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/20 dark:border-gray-700/50"
         >
@@ -531,33 +523,61 @@
                       stroke-linecap="round"
                       stroke-linejoin="round"
                       stroke-width="2"
-                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                      d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"
                     />
                   </svg>
                 </div>
                 <h2 class="text-xl font-bold text-gray-900 dark:text-white">
-                  Actividad Mensual (Asistencias)
+                  Resumen de Asistencias
                 </h2>
               </div>
               <div
-                v-if="monthlyAvg > 0"
-                class="px-4 py-2 bg-purple-100 dark:bg-purple-900/50 rounded-xl"
+                v-if="pieChartData.length > 0"
+                class="px-4 py-2 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/50 dark:to-pink-900/50 rounded-xl"
               >
                 <span class="text-xs font-medium text-purple-700 dark:text-purple-300">
-                  Promedio:
+                  Total:
                 </span>
-                <span class="text-sm font-bold text-purple-900 dark:text-purple-100">
-                  {{ monthlyAvg }}
+                <span class="text-sm font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
+                  {{ totalAttendances }}
                 </span>
               </div>
             </div>
 
-            <AttendanceChart
-              v-if="monthlyLabels && monthlyLabels.length > 0"
-              :labels="monthlyLabels"
-              :values="monthlyData"
-            />
+            <div v-if="pieChartData.length > 0" class="h-96 flex items-center justify-center pb-16">
+              <PieChart
+                :datasets="pieChartData"
+                :size="320"
+                :stroke-width="70"
+              />
+            </div>
 
+            <!-- Empty state cuando no hay datos -->
+            <div v-else-if="!loading && monthlyData.length > 0" class="h-64 flex items-center justify-center">
+              <div class="flex flex-col items-center gap-4 text-gray-500 dark:text-gray-400">
+                <div class="p-6 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-3xl">
+                  <svg class="w-16 h-16 text-purple-400 dark:text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <div class="text-center">
+                  <p class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                    Sin datos de asistencias
+                  </p>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                    No hay registros de asistencias este mes
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Loading state -->
             <div v-else class="h-64 flex items-center justify-center">
               <div
                 class="flex flex-col items-center gap-3 text-gray-500 dark:text-gray-400"
@@ -581,7 +601,7 @@
 </template>
 <script setup>
 import { ref, onMounted, watch, computed } from "vue";
-import AttendanceChart from "@/components/ui/AttendanceChart.vue";
+import PieChart from "@/components/ui/PieChart.vue";
 import { useAuthStore } from "@/store/auth";
 import { storeToRefs } from "pinia";
 import api, { asistenciasService, institucionesService } from "@/services/api";
@@ -722,6 +742,50 @@ const loadMonthlyChart = async () => {
   }
 };
 
+// Computed para datos del pie chart
+const pieChartData = computed(() => {
+  console.log("🔍 Calculando pieChartData:", {
+    monthlyData: monthlyData.value,
+    length: monthlyData.value?.length
+  });
+  
+  if (!monthlyData.value || monthlyData.value.length === 0) {
+    console.log("⚠️ monthlyData está vacío");
+    return [];
+  }
+  
+  // Sumar todos los valores de asistencias y faltas
+  const totalAsistencias = monthlyData.value[0]?.data?.reduce((sum, val) => sum + (val || 0), 0) || 0;
+  const totalFaltas = monthlyData.value[1]?.data?.reduce((sum, val) => sum + (val || 0), 0) || 0;
+  
+  console.log("📊 Totales calculados:", { totalAsistencias, totalFaltas });
+  
+  if (totalAsistencias === 0 && totalFaltas === 0) {
+    console.log("⚠️ No hay datos (ambos en 0)");
+    return [];
+  }
+  
+  const result = [
+    {
+      label: 'Asistencias',
+      value: totalAsistencias,
+      color: '#10b981' // emerald-500
+    },
+    {
+      label: 'Faltas',
+      value: totalFaltas,
+      color: '#ef4444' // red-500
+    }
+  ];
+  
+  console.log("✅ pieChartData generado:", result);
+  return result;
+});
+
+const totalAttendances = computed(() => {
+  return pieChartData.value.reduce((sum, item) => sum + item.value, 0);
+});
+
 // === 🔹 Carga principal ===
 const loadDashboardData = async () => {
   if (!initialized.value || !isAuthenticated.value) return;
@@ -737,9 +801,28 @@ const loadDashboardData = async () => {
 
     // stats
     if (s.status === "fulfilled") {
-      stats.value = s.value;
-      hoyNoLaborable.value = !!s.value.hoy_no_laborable;
-      motivoNoLaborable.value = s.value.motivo_no_laborable || "";
+      const data = s.value;
+      
+      // Usar estructura anidada del backend con fallback a campos legacy
+      stats.value = {
+        instituciones: data.instituciones || { total: 0, activas: 0 },
+        docentes: data.docentes || { total: 0, activos: 0 },
+        asistencias: data.asistencias || { hoy: 0, mes_actual: 0, promedio_asistencia: 0 },
+        justificaciones: data.justificaciones || { pendientes: 0, aprobadas: 0, rechazadas: 0 },
+        
+        // Campos legacy para retrocompatibilidad
+        docentes_count: data.docentes?.total || data.docentes_count || 0,
+        total_instituciones: data.instituciones?.total || data.total_instituciones || 0,
+        asistencias_hoy: data.asistencias?.hoy || data.asistencias_hoy || 0,
+        ausencias_hoy: data.ausencias_hoy ?? 0,
+        feriados_nacionales: data.feriados_nacionales || 0,
+        feriados_institucionales: data.feriados_institucionales || 0,
+        hoy_no_laborable: data.hoy_no_laborable || false,
+        motivo_no_laborable: data.motivo_no_laborable || null
+      };
+      
+      hoyNoLaborable.value = !!data.hoy_no_laborable;
+      motivoNoLaborable.value = data.motivo_no_laborable || "";
     }
 
     // asistencias recientes
