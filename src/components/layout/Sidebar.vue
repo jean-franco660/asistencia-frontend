@@ -246,7 +246,7 @@ const filteredMenuItems = computed(() => {
 // ======================================================
 const sidebarClasses = computed(() => {
   const base = "w-64";
-  const mobile = props.isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0";
+  const mobile = props.isOpen ? "translate-x-0" : "-translate-x-full";
   return [base, mobile];
 });
 

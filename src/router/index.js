@@ -65,6 +65,13 @@ const routes = [
     meta: { requiresAuth: true, roles: ['super_admin', 'administrador'] }
   },
 
+  {
+    path: '/perfil',
+    name: 'Perfil',
+    component: () => import('@/views/perfil/PerfilView.vue'),
+    meta: { requiresAuth: true, roles: ['supervisor'] }
+  },
+
   // ✅ CAMBIO: Solo super_admin puede acceder
   {
     path: '/administradores',
@@ -97,8 +104,8 @@ const routes = [
   },
 
   // Default
-  { 
-    path: '/:pathMatch(.*)*', 
+  {
+    path: '/:pathMatch(.*)*',
     redirect: (to) => {
       const auth = useAuthStore()
       if (!auth.isAuthenticated) return '/login'

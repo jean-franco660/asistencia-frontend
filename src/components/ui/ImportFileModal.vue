@@ -231,67 +231,7 @@
                   {{ result.message }}
                 </h4>
 
-                <!-- Alerta de errores -->
-                <div
-                  v-if="result.errores > 0"
-                  class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mb-3"
-                >
-                  <div class="flex items-start gap-2">
-                    <svg
-                      class="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                      />
-                    </svg>
-                    <div class="flex-1">
-                      <p
-                        class="font-semibold text-yellow-900 dark:text-yellow-100 text-sm mb-1"
-                      >
-                        Algunos registros no pudieron ser importados
-                      </p>
-                      <p class="text-xs text-yellow-800 dark:text-yellow-200">
-                        Revisa el reporte de errores.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Botón de descarga de errores (por importId) -->
-                <button
-                  v-if="
-                    result.errores > 0 && props.downloadErrorReportFunction && importId
-                  "
-                  @click="handleDownloadErrorReport"
-                  class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium transition-all"
-                >
-                  <svg
-                    class="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
-                  Descargar Reporte de Errores
-                </button>
-                <p
-                  v-if="result.errores > 0 && importId"
-                  class="text-xs text-gray-600 dark:text-gray-400 text-center mt-2"
-                >
-                  Descarga el archivo, corrige los errores y vuelve a importar.
-                </p>
+                <!-- Error info removed per request. Check main view for details. -->
               </div>
             </div>
           </div>
@@ -341,7 +281,7 @@
   </div>
 </template>
 <script setup>
-import { ref, onBeforeUnmount } from "vue";
+import { ref, onBeforeUnmount, onMounted, onUnmounted } from "vue";
 import { validateImportFile, formatFileSize } from "@/utils/fileValidation";
 
 const props = defineProps({
@@ -487,6 +427,13 @@ const checkImportStatus = async () => {
         data: { import_id: importId.value },
         result: result.value,
       });
+
+      // Auto-download removed per request. User must download manually.
+
+      // ✅ Cerrar modal automáticamente después de 2 segundos
+      setTimeout(() => {
+        closeModal();
+      }, 2000);
     }
   } catch (error) {
     console.error("Error en polling:", error);
@@ -609,4 +556,18 @@ const closeModal = () => {
   clearFile();
   emit("update:modelValue", false);
 };
+
+const handleKeydown = (e) => {
+  if (e.key === 'Escape' && props.modelValue) {
+    closeModal();
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('keydown', handleKeydown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeydown)
+})
 </script>

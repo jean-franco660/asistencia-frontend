@@ -68,8 +68,8 @@
             />
           </div>
 
-          <!-- Botón Nuevo Administrador -->
-          <div class="flex items-end">
+          <!-- Botones de Acción -->
+          <div class="flex flex-col sm:flex-row items-end gap-3">
             <button
               @click="openCreateModal"
               class="w-full md:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2 justify-center"

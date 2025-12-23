@@ -59,14 +59,21 @@ export const usuariosWebService = {
   rechazar: (id) => api.post(`/usuarios-web/rechazar/${id}`),
 }
 
+export const provisioningService = {
+  search: (query) => api.get('/supervisores/provisioning/search', { params: { search: query } }),
+  getUsuarioApp: (id) => api.get(`/supervisores/provisioning/usuario-app/${id}`),
+  provision: (data) => api.post('/supervisores/provisioning', data),
+}
+
 // =======================
 // Usuarios App (Docentes)
 // =======================
 export const usuariosService = {
   getAll: (params) => api.get('/usuarios-app', { params }),
+  getById: (id) => api.get(`/usuarios-app/${id}`),
   create: (data) => api.post('/usuarios-app', data),
   update: (id, data) => api.put(`/usuarios-app/${id}`, data),
-  
+
   // ⭐ DELETE individual - Usa DELETE directo
   delete: (id) => api.delete(`/usuarios-app/${id}`),
 
@@ -102,6 +109,10 @@ export const usuariosService = {
 
   getEstadisticasImportacion: () =>
     api.get('/usuarios-app/import/stats'),
+
+  // Inactivar asignación
+  inactivarAsignacion: (asignacionId, data) =>
+    api.post(`/usuario-app-institucion/${asignacionId}/inactivar`, data),
 }
 
 // =======================
@@ -113,6 +124,9 @@ export const usuariosService = {
 export const institucionesService = {
   // CRUD/listado general
   getAll: (params, config = {}) => api.get('/instituciones', { params, ...config }),
+
+  // Get single institution by ID
+  getById: (id) => api.get(`/instituciones/${id}`),
 
   // ✅ ÚNICO endpoint recomendado para dropdowns:
   // super_admin/admin => todas, supervisor => solo propias
@@ -195,7 +209,9 @@ export const importService = {
 // =======================
 export const asistenciasService = {
   getAll: (params) => api.get('/asistencias', { params }),
-  getById: (id) => api.get(`/asistencias/${id}`),
+  getCabeceras: (params) => api.get('/asistencias/cabeceras', { params }), // ⭐ NUEVO - Fase 5
+  getById: (id) => api.get(`/asistencias/${id}`), // Para cabeceras diarias
+  getMarcacionById: (id) => api.get(`/asistencias/marcaciones/${id}`), // ⭐ NUEVO - Para marcaciones individuales
   getFoto: (id) => api.get(`/asistencia/foto/${id}`, { responseType: 'blob' }),
   resumenSemanal: () => api.get('/asistencias/semana'),
   exportar: (params) =>
@@ -207,6 +223,16 @@ export const asistenciasService = {
           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       },
     }),
+  exportarInstitucion: (id, params) =>
+    api.get(`/asistencias/exportar-institucion/${id}`, {
+      params,
+      responseType: 'blob',
+      headers: {
+        Accept:
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      },
+    }),
+  updateReview: (id, data) => api.put(`/asistencias/marcaciones/${id}/review`, data), // ⭐ NUEVO - Fase 6
 }
 
 // =======================

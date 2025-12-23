@@ -11,7 +11,9 @@
         <div
           class="relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-xl border border-white/20 dark:border-gray-700/50"
         >
-          <div class="flex flex-col sm:flex-row items-start sm:items-start justify-between gap-4">
+          <div
+            class="flex flex-col sm:flex-row items-start sm:items-start justify-between gap-4"
+          >
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 sm:gap-3 mb-2">
                 <div
@@ -38,7 +40,8 @@
                     Dashboard General
                   </h1>
                   <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    <span class="hidden sm:inline">Resumen completo del sistema · </span>{{ currentDate }}
+                    <span class="hidden sm:inline">Resumen completo del sistema · </span
+                    >{{ currentDate }}
                   </p>
                 </div>
               </div>
@@ -337,7 +340,6 @@
               </div>
             </div>
           </template>
-
         </div>
 
         <!-- Asistencias Recientes + Instituciones -->
@@ -383,8 +385,8 @@
               </div>
 
               <!-- Contenedor con scroll para asistencias -->
-              <div 
-                v-else 
+              <div
+                v-else
                 class="space-y-3 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
               >
                 <div
@@ -468,8 +470,8 @@
               </div>
 
               <!-- Contenedor con scroll para instituciones -->
-              <div 
-                v-else 
+              <div
+                v-else
                 class="space-y-3 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
               >
                 <div
@@ -544,26 +546,44 @@
                 <span class="text-xs font-medium text-purple-700 dark:text-purple-300">
                   Total:
                 </span>
-                <span class="text-sm font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
+                <span
+                  class="text-sm font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent"
+                >
                   {{ totalAttendances }}
                 </span>
               </div>
             </div>
 
-            <div v-if="pieChartData.length > 0" class="h-96 flex items-center justify-center pb-16">
-              <PieChart
-                :datasets="pieChartData"
-                :size="320"
-                :stroke-width="70"
-              />
+            <div
+              v-if="pieChartData.length > 0"
+              class="h-96 flex items-center justify-center pb-16"
+            >
+              <PieChart :datasets="pieChartData" :size="320" :stroke-width="70" />
             </div>
 
             <!-- Empty state cuando no hay datos -->
-            <div v-else-if="!loading && monthlyData.length > 0" class="h-64 flex items-center justify-center">
-              <div class="flex flex-col items-center gap-4 text-gray-500 dark:text-gray-400">
-                <div class="p-6 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-3xl">
-                  <svg class="w-16 h-16 text-purple-400 dark:text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            <div
+              v-else-if="!loading && pieChartData.length === 0"
+              class="h-64 flex items-center justify-center"
+            >
+              <div
+                class="flex flex-col items-center gap-4 text-gray-500 dark:text-gray-400"
+              >
+                <div
+                  class="p-6 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-3xl"
+                >
+                  <svg
+                    class="w-16 h-16 text-purple-400 dark:text-purple-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                    />
                   </svg>
                 </div>
                 <div class="text-center">
@@ -670,7 +690,7 @@ const loadMonthlyChart = async () => {
     console.log("📊 Datos del gráfico mensual:", data);
 
     // === VALIDACIONES ===
-    if (!data || typeof data !== 'object') {
+    if (!data || typeof data !== "object") {
       console.warn("⚠️ Respuesta inválida del servidor");
       monthlyLabels.value = [];
       monthlyData.value = [];
@@ -725,7 +745,7 @@ const loadMonthlyChart = async () => {
     console.log("✅ Gráfico cargado:", {
       labels: monthlyLabels.value,
       datasets: monthlyData.value,
-      avg: monthlyAvg.value
+      avg: monthlyAvg.value,
     });
   } catch (err) {
     console.error(
@@ -746,38 +766,40 @@ const loadMonthlyChart = async () => {
 const pieChartData = computed(() => {
   console.log("🔍 Calculando pieChartData:", {
     monthlyData: monthlyData.value,
-    length: monthlyData.value?.length
+    length: monthlyData.value?.length,
   });
-  
+
   if (!monthlyData.value || monthlyData.value.length === 0) {
     console.log("⚠️ monthlyData está vacío");
     return [];
   }
-  
+
   // Sumar todos los valores de asistencias y faltas
-  const totalAsistencias = monthlyData.value[0]?.data?.reduce((sum, val) => sum + (val || 0), 0) || 0;
-  const totalFaltas = monthlyData.value[1]?.data?.reduce((sum, val) => sum + (val || 0), 0) || 0;
-  
+  const totalAsistencias =
+    monthlyData.value[0]?.data?.reduce((sum, val) => sum + (val || 0), 0) || 0;
+  const totalFaltas =
+    monthlyData.value[1]?.data?.reduce((sum, val) => sum + (val || 0), 0) || 0;
+
   console.log("📊 Totales calculados:", { totalAsistencias, totalFaltas });
-  
+
   if (totalAsistencias === 0 && totalFaltas === 0) {
     console.log("⚠️ No hay datos (ambos en 0)");
     return [];
   }
-  
+
   const result = [
     {
-      label: 'Asistencias',
+      label: "Asistencias",
       value: totalAsistencias,
-      color: '#10b981' // emerald-500
+      color: "#10b981", // emerald-500
     },
     {
-      label: 'Faltas',
+      label: "Faltas",
       value: totalFaltas,
-      color: '#ef4444' // red-500
-    }
+      color: "#ef4444", // red-500
+    },
   ];
-  
+
   console.log("✅ pieChartData generado:", result);
   return result;
 });
@@ -802,14 +824,22 @@ const loadDashboardData = async () => {
     // stats
     if (s.status === "fulfilled") {
       const data = s.value;
-      
+
       // Usar estructura anidada del backend con fallback a campos legacy
       stats.value = {
         instituciones: data.instituciones || { total: 0, activas: 0 },
         docentes: data.docentes || { total: 0, activos: 0 },
-        asistencias: data.asistencias || { hoy: 0, mes_actual: 0, promedio_asistencia: 0 },
-        justificaciones: data.justificaciones || { pendientes: 0, aprobadas: 0, rechazadas: 0 },
-        
+        asistencias: data.asistencias || {
+          hoy: 0,
+          mes_actual: 0,
+          promedio_asistencia: 0,
+        },
+        justificaciones: data.justificaciones || {
+          pendientes: 0,
+          aprobadas: 0,
+          rechazadas: 0,
+        },
+
         // Campos legacy para retrocompatibilidad
         docentes_count: data.docentes?.total || data.docentes_count || 0,
         total_instituciones: data.instituciones?.total || data.total_instituciones || 0,
@@ -818,16 +848,17 @@ const loadDashboardData = async () => {
         feriados_nacionales: data.feriados_nacionales || 0,
         feriados_institucionales: data.feriados_institucionales || 0,
         hoy_no_laborable: data.hoy_no_laborable || false,
-        motivo_no_laborable: data.motivo_no_laborable || null
+        motivo_no_laborable: data.motivo_no_laborable || null,
       };
-      
+
       hoyNoLaborable.value = !!data.hoy_no_laborable;
       motivoNoLaborable.value = data.motivo_no_laborable || "";
     }
 
     // asistencias recientes
     if (att.status === "fulfilled") {
-      const data = att.value.data?.data || att.value.data || [];
+      const raw = att.value.data?.data ?? att.value.data;
+      const data = Array.isArray(raw) ? raw : [];
 
       recentAttendances.value = data.map((item) => {
         const usuario = item.usuario || {};
@@ -860,7 +891,8 @@ const loadDashboardData = async () => {
 
     // instituciones
     if (inst.status === "fulfilled") {
-      const data = inst.value.data?.data || inst.value.data || [];
+      const raw = inst.value.data?.data ?? inst.value.data;
+      const data = Array.isArray(raw) ? raw : [];
       activeInstitutions.value = data.map((item) => ({
         id: item.id,
         nombre: item.nombre,
@@ -869,12 +901,8 @@ const loadDashboardData = async () => {
       }));
     }
   } finally {
+    await loadMonthlyChart();
     loading.value = false;
-
-    // cargar gráfico mensual
-    setTimeout(() => {
-      loadMonthlyChart();
-    }, 300);
   }
 };
 

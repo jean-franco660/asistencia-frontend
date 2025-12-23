@@ -181,7 +181,7 @@
                     <p
                       class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors"
                     >
-                      {{ inst.nombre }}
+                     <span class="text-blue-600 dark:text-blue-400 font-semibold text-xs">I.E.</span> {{ inst.nombre }}
                     </p>
                     <div class="flex items-center gap-2 mt-1">
                       <span
@@ -303,7 +303,7 @@
                   <p
                     class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate"
                   >
-                    {{ selectedInstitucionNombre || "Institución seleccionada" }}
+                    <span class="text-blue-600 dark:text-blue-400 font-semibold text-xs">I.E.</span> {{ selectedInstitucionNombre || "Institución seleccionada" }}
                   </p>
                   <div class="flex items-center gap-2 mt-1">
                     <span
@@ -361,9 +361,10 @@
               class="font-semibold text-gray-800 dark:text-gray-100 text-base sm:text-lg"
             >
               <span v-if="loadingInstituciones">Cargando...</span>
-              <span v-else>{{
-                selectedInstitucionNombre || getInstitucionNombre(institucionId)
-              }}</span>
+              <span v-else>
+                <span class="text-blue-600 dark:text-blue-400 font-semibold text-sm">I.E.</span> 
+                {{ selectedInstitucionNombre || getInstitucionNombre(institucionId) }}
+              </span>
             </p>
           </div>
         </template>
@@ -564,11 +565,18 @@
                 </td>
 
                 <td class="hidden md:table-cell px-4 sm:px-6 py-3 sm:py-4">
-                  <span
-                    class="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
-                  >
-                    {{ h.tolerancia_minutos }} min
-                  </span>
+                  <div class="flex flex-col gap-1">
+                    <span
+                      class="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                    >
+                      ↓ {{ h.tolerancia_entrada_minutos || h.tolerancia_minutos || 5 }} min
+                    </span>
+                    <span
+                      class="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                    >
+                      ↑ {{ h.tolerancia_salida_minutos || h.tolerancia_minutos || 5 }} min
+                    </span>
+                  </div>
                 </td>
 
                 <td class="px-4 sm:px-6 py-3 sm:py-4">
@@ -760,20 +768,37 @@
                 />
               </div>
 
-              <!-- Tolerancia -->
-              <div class="col-span-2">
+              <!-- Tolerancia Entrada -->
+              <div>
                 <label
                   class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
                 >
-                  Tolerancia (minutos)
+                  Tolerancia Entrada (min)
                 </label>
                 <input
                   type="number"
-                  v-model.number="form.tolerancia_minutos"
+                  v-model.number="form.tolerancia_entrada_minutos"
                   min="0"
                   max="60"
                   class="w-full border-2 border-gray-200 dark:border-gray-600 rounded-xl p-3 bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="Ej: 15"
+                  placeholder="Ej: 5"
+                />
+              </div>
+
+              <!-- Tolerancia Salida -->
+              <div>
+                <label
+                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  Tolerancia Salida (min)
+                </label>
+                <input
+                  type="number"
+                  v-model.number="form.tolerancia_salida_minutos"
+                  min="0"
+                  max="60"
+                  class="w-full border-2 border-gray-200 dark:border-gray-600 rounded-xl p-3 bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  placeholder="Ej: 5"
                 />
               </div>
             </div>
@@ -899,7 +924,8 @@ const form = ref({
   nombre_turno: "",
   hora_entrada: "",
   hora_salida: "",
-  tolerancia_minutos: 5,
+  tolerancia_entrada_minutos: 5,
+  tolerancia_salida_minutos: 5,
   dias_semana: [],
 });
 
@@ -975,11 +1001,14 @@ const onInputBuscarInstitucion = () => {
     loadingInstitucionesBuscador.value = true;
 
     try {
-      // ✅ /instituciones/mias filtra por rol en backend
-      const r = await institucionesService.searchMias(term, 10, {
-        signal: instAbort.signal,
-      });
-      filteredInstituciones.value = Array.isArray(r.data) ? r.data : [];
+      // ✅ Usar el mismo endpoint que la vista de Instituciones
+      const r = await institucionesService.getAll(
+        { search: term, limit: 10 },
+        { signal: instAbort.signal }
+      );
+      // Normalizar respuesta (puede venir con data.data o data directamente)
+      const data = r.data.data || r.data;
+      filteredInstituciones.value = Array.isArray(data) ? data : [];
     } catch (e) {
       if (e?.name !== "AbortError" && e?.code !== "ERR_CANCELED") {
         console.error("❌ Error buscando instituciones:", e);
@@ -1137,7 +1166,8 @@ const openCreate = () => {
     nombre_turno: "",
     hora_entrada: "",
     hora_salida: "",
-    tolerancia_minutos: 5,
+    tolerancia_entrada_minutos: 5,
+    tolerancia_salida_minutos: 5,
     dias_semana: [],
   };
   modalOpen.value = true;
@@ -1176,7 +1206,8 @@ const openEdit = (h) => {
     nombre_turno: h.nombre_turno,
     hora_entrada: h.hora_entrada,
     hora_salida: h.hora_salida,
-    tolerancia_minutos: h.tolerancia_minutos,
+    tolerancia_entrada_minutos: h.tolerancia_entrada_minutos || h.tolerancia_minutos || 5,
+    tolerancia_salida_minutos: h.tolerancia_salida_minutos || h.tolerancia_minutos || 5,
     dias_semana: diasArray,
   };
 
@@ -1206,69 +1237,7 @@ const saveHorario = async () => {
   };
 
   const validarHorarioTurno = () => {
-    const turnoNombre = (form.value.nombre_turno || "").toLowerCase();
-    const entrada = form.value.hora_entrada;
-    const salida = form.value.hora_salida;
-
-    const rangos = {
-      mañana: {
-        entradaMin: "05:00",
-        entradaMax: "13:00",
-        salidaMax: "14:00",
-        nombre: "Turno Mañana",
-        rangoEntrada: "5:00 AM - 1:00 PM",
-      },
-      tarde: {
-        entradaMin: "13:00",
-        entradaMax: "19:00",
-        salidaMax: "20:00",
-        nombre: "Turno Tarde",
-        rangoEntrada: "1:00 PM - 7:00 PM",
-      },
-      noche: {
-        entradaMin: "19:00",
-        entradaMax: "23:59",
-        salidaMax: "24:59",
-        nombre: "Turno Noche",
-        rangoEntrada: "7:00 PM - 11:59 PM",
-      },
-    };
-
-    let tipoTurno = null;
-    if (turnoNombre.includes("mañana") || turnoNombre.includes("matutino"))
-      tipoTurno = "mañana";
-    else if (turnoNombre.includes("tarde") || turnoNombre.includes("vespertino"))
-      tipoTurno = "tarde";
-    else if (turnoNombre.includes("noche") || turnoNombre.includes("nocturno"))
-      tipoTurno = "noche";
-
-    if (!tipoTurno) {
-      return {
-        valido: false,
-        mensaje: "El nombre del turno debe contener 'Mañana', 'Tarde' o 'Noche'",
-      };
-    }
-
-    const rango = rangos[tipoTurno];
-
-    if (entrada < rango.entradaMin || entrada > rango.entradaMax) {
-      return {
-        valido: false,
-        mensaje: `La hora de entrada (${formatoHora12(entrada)}) no corresponde al ${
-          rango.nombre
-        }. Rango permitido: ${rango.rangoEntrada}`,
-      };
-    }
-
-    if (salida > rango.salidaMax) {
-      return {
-        valido: false,
-        mensaje: `La hora de salida (${formatoHora12(salida)}) excede el límite del ${
-          rango.nombre
-        }. Máximo permitido: ${formatoHora12(rango.salidaMax)}`,
-      };
-    }
-
+    // Validación desactivada por solicitud del usuario
     return { valido: true };
   };
 
@@ -1292,7 +1261,8 @@ const saveHorario = async () => {
       nombre_turno: form.value.nombre_turno,
       hora_entrada: sanitizar(form.value.hora_entrada),
       hora_salida: sanitizar(form.value.hora_salida),
-      tolerancia_minutos: form.value.tolerancia_minutos,
+      tolerancia_entrada_minutos: form.value.tolerancia_entrada_minutos,
+      tolerancia_salida_minutos: form.value.tolerancia_salida_minutos,
       dias_semana: form.value.dias_semana,
       activo: true,
     };

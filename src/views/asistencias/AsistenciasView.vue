@@ -46,7 +46,7 @@
           <div class="flex gap-3">
             <button
               @click="exportToExcel"
-              :disabled="asistencias.length === 0"
+              :disabled="pagination.total === 0 || !!filters.institucion_id"
               class="group relative px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl font-semibold shadow-lg shadow-green-500/50 hover:shadow-xl hover:shadow-green-500/60 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               <span class="flex items-center gap-2">
@@ -187,6 +187,26 @@
                 {{ i.nombre }} {{ i.codigo_modular_ie ? `(${i.codigo_modular_ie})` : "" }}
               </option>
             </select>
+            <button
+              v-if="filters.institucion_id"
+              @click="exportInstitucionReport"
+              class="mt-2 w-full text-xs bg-indigo-100 hover:bg-indigo-200 text-indigo-700 py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1 font-medium transform hover:scale-105"
+            >
+              <svg
+                class="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                />
+              </svg>
+              Descargar Reporte Detallado
+            </button>
           </div>
 
           <!-- Tipo -->
@@ -284,9 +304,62 @@
         </div>
       </div>
 
-      <!-- Resumen Premium -->
+      <!-- ⭐ NUEVO: Navegación por Tabs -->
       <div
-        v-if="!loading && asistencias.length > 0"
+        class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 p-6"
+      >
+        <div class="flex gap-6 mb-0">
+          <button
+            @click="activeTab = 'cabeceras'; load(1);"
+            :class="[
+              'flex-1 py-4 px-6 rounded-xl font-semibold transition-all duration-300 transform',
+              activeTab === 'cabeceras'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg scale-105'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+            ]"
+          >
+            <span class="flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              </svg>
+              Resumen Diario
+              <span
+                v-if="activeTab === 'cabeceras'"
+                class="bg-white/20 px-2 py-1 rounded-lg text-xs"
+              >
+                {{ pagination.total }} registros
+              </span>
+            </span>
+          </button>
+
+          <button
+            @click="activeTab = 'marcaciones'; load(1);"
+            :class="[
+              'flex-1 py-4 px-6 rounded-xl font-semibold transition-all duration-300 transform',
+              activeTab === 'marcaciones'
+                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg scale-105'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+            ]"
+          >
+            <span class="flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Marcaciones Detalladas
+              <span
+                v-if="activeTab === 'marcaciones'"
+                class="bg-white/20 px-2 py-1 rounded-lg text-xs"
+              >
+                {{ pagination.total }} registros
+              </span>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Resumen Premium (Solo para Marcaciones) -->
+      <div
+        v-if="activeTab === 'marcaciones' && !loading && asistencias.length > 0"
         class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
       >
         <!-- A Tiempo -->
@@ -370,8 +443,197 @@
         </div>
       </div>
 
-      <!-- Tabla Premium -->
+      <!-- ⭐ NUEVA: Tabla de Cabeceras Diarias -->
       <div
+        v-if="activeTab === 'cabeceras'"
+        class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 overflow-hidden"
+      >
+        <div v-if="loading" class="flex flex-col items-center justify-center py-20">
+          <div class="relative">
+            <div
+              class="w-20 h-20 border-8 border-blue-200 dark:border-blue-900 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin"
+            ></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <svg
+                class="w-8 h-8 text-blue-600 dark:text-blue-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                />
+              </svg>
+            </div>
+          </div>
+          <p class="mt-6 text-lg font-semibold text-gray-600 dark:text-gray-400">
+            Cargando resumen diario...
+          </p>
+        </div>
+
+        <div
+          v-else-if="cabeceras.length === 0"
+          class="flex flex-col items-center justify-center py-20"
+        >
+          <div class="p-6 bg-gray-100 dark:bg-gray-700 rounded-full mb-4">
+            <svg
+              class="w-16 h-16 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+              />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-700 dark:text-gray-300 mb-2">
+            No se encontraron registros
+          </h3>
+          <p class="text-gray-500 dark:text-gray-400">
+            No hay asistencias para el período seleccionado
+          </p>
+        </div>
+
+        <div v-else class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+                <th class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">
+                  Docente
+                </th>
+                <th class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">
+                  Institución
+                </th>
+                <th class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">
+                  Fecha
+                </th>
+                <th class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">
+                  Estado
+                </th>
+                <th class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">
+                  H. Entrada
+                </th>
+                <th class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">
+                  H. Salida
+                </th>
+                <th class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">
+                  Tardanza
+                </th>
+                <th class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">
+                  Observadas
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+              <tr
+                v-for="cabecera in cabeceras"
+                :key="cabecera.id"
+                class="hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors duration-200"
+              >
+                <!-- Docente -->
+                <td class="px-6 py-4">
+                  <div class="flex flex-col">
+                    <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                      {{ cabecera.usuario?.apellido_paterno }} {{ cabecera.usuario?.apellido_materno }}
+                    </span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                      {{ cabecera.usuario?.nombres }}
+                    </span>
+                    <span class="text-xs text-gray-400 dark:text-gray-500">
+                      {{ cabecera.usuario?.codigo_modular }}
+                    </span>
+                  </div>
+                </td>
+
+                <!-- Institución -->
+                <td class="px-6 py-4">
+                  <div class="flex flex-col">
+                    <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      {{ cabecera.institucion?.nombre || '-' }}
+                    </span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                      {{ cabecera.institucion?.codigo_modular_ie || '-' }}
+                    </span>
+                  </div>
+                </td>
+
+                <!-- Fecha -->
+                <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                  {{ formatDate(cabecera.fecha) }}
+                </td>
+
+                <!-- Estado Diario con Badge -->
+                <td class="px-6 py-4">
+                  <span
+                    :class="[
+                      'px-3 py-1 rounded-full text-xs font-bold uppercase',
+                      cabecera.estado_diario === 'FALTA'
+                        ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                        : cabecera.estado_diario === 'TARDANZA'
+                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                        : cabecera.estado_diario === 'PRESENTE'
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                        : cabecera.estado_diario === 'JUSTIFICADO'
+                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                        : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+                    ]"
+                  >
+                    {{ cabecera.estado_diario || 'PENDIENTE' }}
+                  </span>
+                </td>
+
+                <!-- Hora Entrada -->
+                <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                  {{ cabecera.hora_entrada || '--:--' }}
+                </td>
+
+                <!-- Hora Salida -->
+                <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                  {{ cabecera.hora_salida || '--:--' }}
+                </td>
+
+                <!-- Minutos Tardanza -->
+                <td class="px-6 py-4">
+                  <span
+                    v-if="cabecera.minutos_tardanza"
+                    class="px-2 py-1 bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 rounded text-xs font-semibold"
+                  >
+                    {{ cabecera.minutos_tardanza }} min
+                  </span>
+                  <span v-else class="text-gray-400">-</span>
+                </td>
+
+                <!-- Marcaciones Pendientes -->
+                <td class="px-6 py-4">
+                  <span
+                    v-if="cabecera.marcaciones_pendientes > 0"
+                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                  >
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    {{ cabecera.marcaciones_pendientes }}
+                  </span>
+                  <span v-else class="text-green-600 dark:text-green-400 text-sm font-medium">
+                    ✓ Sin pendientes
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tabla Premium (Marcaciones) -->
+      <div
+        v-if="activeTab === 'marcaciones'"
         class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 overflow-hidden"
       >
         <div v-if="loading" class="flex flex-col items-center justify-center py-20">
@@ -465,18 +727,15 @@
                 >
                   Ubicación
                 </th>
-                <th
-                  class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider"
-                >
-                  Foto
-                </th>
+
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
               <tr
                 v-for="row in asistencias"
                 :key="row.id"
-                class="hover:bg-blue-50 dark:hover:bg-gray-700/50 transition-colors duration-200"
+                class="hover:bg-blue-50 dark:hover:bg-gray-700/50 transition-colors duration-200 cursor-pointer"
+                @click="openDetailModal(row)"
               >
                 <td class="px-6 py-4">
                   <div class="flex items-center gap-3">
@@ -497,10 +756,10 @@
                     </div>
                     <div>
                       <div class="font-semibold text-gray-900 dark:text-gray-100">
-                        {{ getDocenteNombre(row.usuario) }}
+                        {{ getDocenteNombre(row) }}
                       </div>
                       <div class="text-sm text-gray-500 dark:text-gray-400">
-                        {{ row.usuario?.codigo_modular || "" }}
+                        {{ row.asistencia?.usuario?.codigo_modular || "" }}
                       </div>
                     </div>
                   </div>
@@ -521,14 +780,14 @@
                       />
                     </svg>
                     <span class="text-gray-700 dark:text-gray-300">{{
-                      row.institucion?.nombre || "-"
+                      getInstitucionNombre(row)
                     }}</span>
                   </div>
                 </td>
                 <td class="px-6 py-4">
-                  <div v-if="row.fecha_hora">
+                  <div v-if="row.marcada_en">
                     <div class="font-medium text-gray-900 dark:text-gray-100">
-                      {{ formatDate(row.fecha_hora) }}
+                      {{ formatDate(row.marcada_en) }}
                     </div>
                     <div
                       class="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1"
@@ -546,7 +805,7 @@
                           d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                         />
                       </svg>
-                      {{ formatTime(row.fecha_hora) }}
+                      {{ formatTime(row.marcada_en) }}
                     </div>
                   </div>
                   <span v-else class="text-gray-400">Sin fecha</span>
@@ -666,38 +925,7 @@
                     </div>
                   </div>
                 </td>
-                <td class="px-6 py-4">
-                  <button
-                    v-if="row.foto"
-                    @click="openPhoto(row)"
-                    class="group relative w-14 h-14 rounded-xl overflow-hidden border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-110"
-                  >
-                    <img
-                      :src="photoUrl(row.foto)"
-                      class="w-full h-full object-cover"
-                      alt="Foto de asistencia"
-                      @error="handleImageError"
-                    />
-                    <div
-                      class="absolute inset-0 bg-blue-600/0 group-hover:bg-blue-600/20 transition-all duration-300 flex items-center justify-center"
-                    >
-                      <svg
-                        class="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                        />
-                      </svg>
-                    </div>
-                  </button>
-                  <span v-else class="text-gray-400">—</span>
-                </td>
+
               </tr>
             </tbody>
           </table>
@@ -728,7 +956,20 @@
     </div>
 
     <!-- Modal Foto -->
+    <!-- Modal Foto -->
     <PhotoModal :open="showPhoto" :asistencia="selected" @close="closePhoto" />
+    
+    <!-- Modal Detalle -->
+    <AsistenciaDetailModal 
+      :is-open="showDetail" 
+      :marcacion="selected" 
+      :review-queue-length="reviewQueue.length"
+      :current-review-index="currentReviewIndex"
+      @close="showDetail = false" 
+      @saved="load"
+      @navigate="navigateReview"
+      @approve-and-next="handleApproveAndNext"
+    />
   </div>
 </template>
 
@@ -737,22 +978,42 @@ import { ref, reactive, onMounted, computed } from "vue";
 import { asistenciasService, institucionesService } from "@/services/api";
 import { useAuthStore } from "@/store/auth";
 import PhotoModal from "@/components/ui/PhotoModal.vue";
+import AsistenciaDetailModal from "@/components/features/asistencias/AsistenciaDetailModal.vue";
 import Swal from "sweetalert2";
 
 const authStore = useAuthStore();
 const userRole = computed(() => authStore.user?.rol);
 
-const asistencias = ref([]);
+// ⭐ NUEVO: Estado para tabs
+const activeTab = ref('cabeceras'); // 'cabeceras' | 'marcaciones'
+
+// Datos
+const cabeceras = ref([]); // ⭐ NUEVO: Cabeceras diarias
+const asistencias = ref([]); // Marcaciones individuales
 const instituciones = ref([]);
 const loading = ref(false);
 const showPhoto = ref(false);
+const showDetail = ref(false);
 const selected = ref(null);
+
+// ⭐ FASE 6: Estado para cola de revisión
+const reviewQueue = ref([]); // Array de IDs de marcaciones observadas
+const currentReviewIndex = ref(0); // Índice actual en la cola
+
+// Resumen de estadísticas
+const resumen = ref({
+  a_tiempo: 0,
+  tarde: 0,
+  faltas: 0,
+  total: 0
+});
 
 const filters = reactive({
   fecha_inicio: "",
   fecha_fin: "",
   institucion_id: null,
-  tipo: null,
+  tipo: null, // Solo para tab marcaciones
+  estado_diario: null, // ⭐ NUEVO: Solo para tab cabeceras
   search: "",
 });
 
@@ -769,7 +1030,8 @@ const formatCoordinate = (coord) => {
   return num.toFixed(6);
 };
 
-const getDocenteNombre = (usuario) => {
+const getDocenteNombre = (row) => {
+  const usuario = row.asistencia?.usuario;
   if (!usuario) return "-";
   const partes = [];
   if (usuario.apellido_paterno) partes.push(usuario.apellido_paterno);
@@ -778,75 +1040,58 @@ const getDocenteNombre = (usuario) => {
   return partes.length > 0 ? partes.join(" ") : "-";
 };
 
-const resumen = computed(() => {
-  const a_tiempo = asistencias.value.filter((a) => a.resultado === "A_TIEMPO").length;
-  const tarde = asistencias.value.filter((a) => a.resultado === "TARDE").length;
-  const faltas = asistencias.value.filter((a) => a.situacion === "FALTA").length;
-  return { a_tiempo, tarde, faltas };
-});
-
-const totalPages = computed(() => Math.ceil(pagination.total / pagination.per_page));
-
-const photoUrl = (path) => {
-  if (!path) return null;
-  const apiUrl = import.meta.env.VITE_API_BASE_URL;
-  if (!apiUrl) {
-    console.error("VITE_API_BASE_URL no está definida en .env");
-    return null;
-  }
-  const baseUrl = apiUrl.replace("/api/v1/web", "");
-  return `${baseUrl}/storage/${path}`;
+const getInstitucionNombre = (row) => {
+    return row.asistencia?.institucion?.nombre || "-";
 };
 
-const handleImageError = (event) => {
-  console.error("Error cargando imagen:", event.target.src);
-  event.target.style.display = "none";
-};
-
-const openPhoto = (row) => {
-  selected.value = row;
-  showPhoto.value = true;
-};
-
-const closePhoto = () => {
-  showPhoto.value = false;
-  selected.value = null;
-};
+// ... (resumen logic needs update later or removed for now as endpoint changed) ... 
 
 const estadoLabel = (row) => {
-  if (row.situacion === "FALTA") return "Ausente";
-  if (row.resultado === "A_TIEMPO") return "A Tiempo";
-  if (row.resultado === "TARDE") return "Tarde";
-  if (row.resultado === "SALIDA_ANTES") return "Salida Anticipada";
-  return "—";
+  if (row.estado_revision === 'APROBADA') return 'Validada (Manual)';
+  if (row.estado_revision === 'MANTENER_OBSERVADA') return 'Observada (Confirmada)';
+
+  if (row.estado_marcacion === "VALIDA") return "Válida";
+  if (row.estado_marcacion === "OBSERVADA") return "Observada";
+  if (row.estado_marcacion === "ANULADA") return "Anulada";
+  return row.estado_marcacion;
 };
 
 const estadoIcon = (row) => {
-  if (row.situacion === "FALTA")
-    return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
-  if (row.resultado === "A_TIEMPO")
-    return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
-  if (row.resultado === "TARDE")
-    return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
-  if (row.resultado === "SALIDA_ANTES")
+  if (row.estado_revision === 'APROBADA')
+     return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
+  
+  if (row.estado_revision === 'MANTENER_OBSERVADA')
+     return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
+
+  if (row.estado_marcacion === "VALIDA")
+    return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>';
+  if (row.estado_marcacion === "OBSERVADA")
     return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>';
+  if (row.estado_marcacion === "ANULADA")
+    return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>';
   return "";
 };
 
 const getEstadoClass = (row) => {
-  if (row.situacion === "FALTA") return "text-red-600 dark:text-red-400";
-  if (row.resultado === "A_TIEMPO") return "text-green-600 dark:text-green-400";
-  if (row.resultado === "TARDE") return "text-orange-600 dark:text-orange-400";
-  if (row.resultado === "SALIDA_ANTES") return "text-yellow-600 dark:text-yellow-400";
+  if (row.estado_revision === 'APROBADA') return "text-green-600 dark:text-green-400";
+  if (row.estado_revision === 'MANTENER_OBSERVADA') return "text-red-600 dark:text-red-400";
+
+  if (row.estado_marcacion === "VALIDA") return "text-green-600 dark:text-green-400";
+  if (row.estado_marcacion === "OBSERVADA") return "text-orange-600 dark:text-orange-400";
+  if (row.estado_marcacion === "ANULADA") return "text-red-600 dark:text-red-400";
   return "text-gray-500";
 };
 
 const formatDate = (dateString) => {
   if (!dateString) return "Sin fecha";
   try {
+    // Parse as UTC (timestamps from backend are in UTC with timezone offset)
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return "Fecha inválida";
+    
+    // Convert to America/Lima timezone for display
     return date.toLocaleDateString("es-PE", {
+      timeZone: "America/Lima",
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -860,9 +1105,13 @@ const formatDate = (dateString) => {
 const formatTime = (dateString) => {
   if (!dateString) return "--:--";
   try {
+    // Parse as UTC (timestamps from backend are in UTC with timezone offset)
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return "--:--";
+    
+    // Convert to America/Lima timezone for display
     return date.toLocaleTimeString("es-PE", {
+      timeZone: "America/Lima",
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
@@ -873,7 +1122,61 @@ const formatTime = (dateString) => {
   }
 };
 
-const load = async (page = 1) => {
+// ⭐ NUEVO: Cargar cabeceras diarias (Tab 1)
+const loadCabeceras = async (page = 1) => {
+  loading.value = true;
+  try {
+    const params = {
+      fecha_inicio: filters.fecha_inicio || undefined,
+      fecha_fin: filters.fecha_fin || undefined,
+      institucion_id: filters.institucion_id || undefined,
+      estado_diario: filters.estado_diario || undefined,
+      search: filters.search || undefined,
+      page,
+      per_page: pagination.per_page,
+    };
+
+    console.log("📤 Cargando cabeceras con params:", params);
+
+    const res = await asistenciasService.getCabeceras(params);
+
+    console.log("📥 Cabeceras recibidas:", res.data);
+
+    if (res.data?.success && res.data?.data) {
+      const responseData = res.data.data;
+
+      if (responseData.data && Array.isArray(responseData.data)) {
+        cabeceras.value = responseData.data;
+        pagination.total = responseData.total || 0;
+        pagination.current_page = responseData.current_page || 1;
+      } else if (Array.isArray(responseData)) {
+        cabeceras.value = responseData;
+        pagination.total = responseData.length;
+      } else {
+        cabeceras.value = [];
+      }
+
+      console.log(`✅ ${cabeceras.value.length} cabeceras cargadas`);
+    } else {
+      console.warn("⚠️ Estructura inesperada:", res.data);
+      cabeceras.value = [];
+    }
+  } catch (error) {
+    console.error("❌ Error cargando cabeceras:", error);
+    cabeceras.value = [];
+
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: error.response?.data?.message || "No se pudieron cargar las cabeceras",
+      confirmButtonColor: "#3B82F6",
+    });
+  }
+  loading.value = false;
+};
+
+// Cargar marcaciones individuales (Tab 2 - método original)
+const loadMarcaciones = async (page = 1) => {
   loading.value = true;
   try {
     const params = {
@@ -886,16 +1189,15 @@ const load = async (page = 1) => {
       per_page: pagination.per_page,
     };
 
-    console.log("📤 Cargando asistencias con params:", params);
+    console.log("📤 Cargando marcaciones con params:", params);
 
     const res = await asistenciasService.getAll(params);
 
-    console.log("📥 Respuesta recibida:", res.data);
+    console.log("📥 Marcaciones recibidas:", res.data);
 
     if (res.data?.success && res.data?.data) {
       const responseData = res.data.data;
 
-      // Manejar paginación de Laravel
       if (responseData.data && Array.isArray(responseData.data)) {
         asistencias.value = responseData.data;
         pagination.total = responseData.total || 0;
@@ -907,24 +1209,232 @@ const load = async (page = 1) => {
         asistencias.value = [];
       }
 
-      console.log(`✅ ${asistencias.value.length} asistencias cargadas`);
+      console.log(`✅ ${asistencias.value.length} marcaciones cargadas`);
+
+      // Calcular resumen
+      calcularResumen();
     } else {
       console.warn("⚠️ Estructura inesperada:", res.data);
       asistencias.value = [];
     }
   } catch (error) {
-    console.error("❌ Error cargando asistencias:", error);
+    console.error("❌ Error cargando marcaciones:", error);
     asistencias.value = [];
 
     Swal.fire({
       icon: "error",
       title: "Error",
-      text: error.response?.data?.message || "No se pudieron cargar las asistencias",
+      text: error.response?.data?.message || "No se pudieron cargar las marcaciones",
       confirmButtonColor: "#3B82F6",
     });
   }
   loading.value = false;
 };
+
+// Calcular resumen de marcaciones
+const calcularResumen = () => {
+  const marcaciones = asistencias.value;
+  
+  resumen.value = {
+    a_tiempo: marcaciones.filter(m => 
+      m.tipo === 'ENTRADA' && 
+      m.estado_marcacion === 'VALIDA' && 
+      !m.es_tardanza
+    ).length,
+    
+    tarde: marcaciones.filter(m => 
+      m.tipo === 'ENTRADA' && 
+      m.es_tardanza === true
+    ).length,
+    
+    faltas: marcaciones.filter(m => 
+      m.estado_marcacion === 'OBSERVADA'
+    ).length,
+    
+    total: marcaciones.length
+  };
+};
+
+// ⭐ NUEVO: Wrapper que carga según tab activo
+const load = async (page = 1) => {
+  if (activeTab.value === 'cabeceras') {
+    await loadCabeceras(page);
+  } else {
+    await loadMarcaciones(page);
+  }
+};
+
+// ⭐ FASE 6: Cargar cola de revisión
+const loadReviewQueue = async () => {
+  try {
+    // Obtener solo marcaciones observadas pendientes
+    const params = {
+      ...filters,
+      estado_revision: 'PENDIENTE',
+      per_page: 100, // Límite razonable
+      page: 1,
+    };
+    
+    console.log('📋 Cargando cola de revisión...');
+    
+    let items = [];
+    
+    if (activeTab.value === 'cabeceras') {
+      // Para cabeceras, necesitamos obtener las marcaciones observadas
+      const res = await asistenciasService.getAll({
+        ...params,
+        estado_marcacion: 'OBSERVADA',
+      });
+      
+      if (res.data?.success && res.data?.data?.data) {
+        items = res.data.data.data;
+      }
+    } else {
+      // Para tab marcaciones, filtrar observadas
+      const res = await asistenciasService.getAll({
+        ...params,
+        estado_marcacion: 'OBSERVADA',
+      });
+      
+      if (res.data?.success && res.data?.data?.data) {
+        items = res.data.data.data.filter(m => m.estado_marcacion === 'OBSERVADA');
+      }
+    }
+    
+    // Extraer IDs
+    reviewQueue.value = items.map(item => item.id);
+    
+    // Encontrar índice de la marcación actual
+    if (selected.value) {
+      currentReviewIndex.value = reviewQueue.value.indexOf(selected.value.id);
+      if (currentReviewIndex.value === -1) {
+        currentReviewIndex.value = 0;
+        reviewQueue.value.unshift(selected.value.id); // Agregar al inicio si no está
+      }
+    } else {
+      currentReviewIndex.value = 0;
+    }
+    
+    console.log(`✅ Cola cargada: ${reviewQueue.value.length} marcaciones`);
+    console.log(`📍 Índice actual: ${currentReviewIndex.value + 1}/${reviewQueue.value.length}`);
+  } catch (error) {
+    console.error('❌ Error loading review queue:', error);
+    // Fallback: solo la marcación actual
+    if (selected.value) {
+      reviewQueue.value = [selected.value.id];
+      currentReviewIndex.value = 0;
+    }
+  }
+};
+
+// ⭐ FASE 6: Navegar en cola de revisión
+const navigateReview = async (direction) => {
+  if (direction === 'stay') {
+    // Recargar marcación en índice actual
+    // (sin nothing, just reload)
+  } else {
+    // Calcular nuevo índice
+    const newIndex = direction === 'next' 
+      ? currentReviewIndex.value + 1 
+      : currentReviewIndex.value - 1;
+    
+    // Validar límites
+    if (newIndex < 0 || newIndex >= reviewQueue.value.length) {
+      console.log('⚠️ No hay más marcaciones en esa dirección');
+      return;
+    }
+    
+    // Actualizar índice
+    currentReviewIndex.value = newIndex;
+  }
+  
+  // Cargar marcación correspondiente
+  const marcacionId = reviewQueue.value[currentReviewIndex.value];
+  
+  try {
+    loading.value = true;
+    console.log(`🔄 Cargando marcación ${currentReviewIndex.value + 1}/${reviewQueue.value.length}...`);
+    
+    // ⭐ CORREGIDO: Usar getMarcacionById en lugar de getById
+    const response = await asistenciasService.getMarcacionById(marcacionId);
+    
+    if (response.data?.success && response.data?.data) {
+      selected.value = response.data.data;
+      console.log('✅ Marcación cargada');
+    } else {
+      throw new Error('Estructura de respuesta inesperada');
+    }
+  } catch (error) {
+    console.error('❌ Error loading marcacion:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.response?.data?.message || 'No se pudo cargar la marcación',
+      confirmButtonColor: '#3B82F6',
+    });
+  } finally {
+    loading.value = false;
+  }
+};
+
+// ⭐ FASE 6: Aprobar y pasar a siguiente
+const approveAndNext = async () => {
+  // Esta función será llamada desde el modal
+  // El modal debe emitir un evento 'approve-and-next'
+  console.log('✅ Aprobando y pasando a siguiente...');
+};
+
+// ⭐ FASE 6: Handler para evento approve-and-next
+// ⭐ FASE 6: Handler para evento approve-and-next
+const handleApproveAndNext = async () => {
+  try {
+    console.log('📝 Manejando aprobación y navegación...');
+    
+    // 1. Refrescar lista de fondo para reflejar el cambio de estado
+    // Esto se hace en segundo plano para no bloquear la UI
+    load().catch(e => console.error('Error refreshing list:', e));
+    
+    // 2. Remover marcación actual de la cola
+    reviewQueue.value.splice(currentReviewIndex.value, 1);
+    
+    console.log(`📊 Estado de cola: ${reviewQueue.value.length} restantes. Índice actual: ${currentReviewIndex.value}`);
+
+    // 3. Verificar si hay más marcaciones
+    if (reviewQueue.value.length > 0) {
+      // Ajustar índice si es necesario
+      if (currentReviewIndex.value >= reviewQueue.value.length) {
+        currentReviewIndex.value = reviewQueue.value.length - 1;
+      }
+      
+      // 4. Cargar siguiente marcación
+      console.log(`🔄 Cargando siguiente at index ${currentReviewIndex.value}`);
+      await navigateReview('stay'); // Cargar marcación en índice actual (que ahora es la siguiente)
+    } else {
+      // 5. No hay más marcaciones, cerrar modal
+      console.log('✅ Cola de revisión completada!');
+      showDetail.value = false;
+      selected.value = null;
+      
+      // Mostrar mensaje de éxito
+      await Swal.fire({
+        icon: 'success',
+        title: '¡Cola completada!',
+        text: 'Has revisado todas las marcaciones pendientes',
+        confirmButtonColor: '#10B981',
+        timer: 2000,
+        timerProgressBar: true,
+      });
+    }
+  } catch (error) {
+    console.error('❌ Error en handleApproveAndNext:', error);
+    await Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Hubo un problema al navegar a la siguiente marcación',
+    });
+  }
+};
+
 
 const loadInstituciones = async () => {
   try {
@@ -982,8 +1492,73 @@ const goToPage = (page) => {
   }
 };
 
+const exportInstitucionReport = async () => {
+  if (!filters.institucion_id) return;
+
+  try {
+    Swal.fire({
+      title: "Generando Reporte...",
+      text: "Descargando datos detallados de la institución.",
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
+    const params = {
+      fecha_inicio: filters.fecha_inicio || undefined,
+      fecha_fin: filters.fecha_fin || undefined,
+    };
+
+    const response = await asistenciasService.exportarInstitucion(filters.institucion_id, params);
+
+    // Manejar la descarga del blob
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    
+    const contentDisposition = response.headers['content-disposition'];
+    let filename = `Reporte_Institucion.xlsx`; 
+    if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?(.+?)"?$/);
+        if (filenameMatch && filenameMatch.length > 1) {
+            filename = filenameMatch[1];
+        }
+    }
+    
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    Swal.close();
+    Swal.fire({
+      icon: "success",
+      title: "¡Reporte Descargado!",
+      text: "Se ha generado el reporte detallado correctamente.",
+      confirmButtonColor: "#10B981",
+      timer: 2000,
+      timerProgressBar: true,
+    });
+
+  } catch (error) {
+    console.error("❌ Error exportando reporte institucional:", error);
+    Swal.close();
+
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: error.response?.data?.message || "No se pudo generar el reporte institucional.",
+      confirmButtonColor: "#EF4444",
+    });
+  }
+};
+
 const exportToExcel = async () => {
-  if (asistencias.value.length === 0) {
+  if (pagination.total === 0) {
     Swal.fire({
       icon: "warning",
       title: "Sin datos",
@@ -1058,6 +1633,49 @@ const exportToExcel = async () => {
   }
 };
 
+// ⭐ FASE 6: Abrir modal con cola de revisión
+const openDetailModal = async (marcacion) => {
+  console.log('🔍 Abriendo modal de detalle para marcación:', marcacion.id);
+  
+  try {
+    selected.value = marcacion;
+    showDetail.value = true;
+    
+    // Cargar cola de revisión
+    await loadReviewQueue();
+    
+    console.log('✅ Modal abierto correctamente');
+  } catch (error) {
+    console.error('❌ Error al abrir modal:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'No se pudo abrir el detalle de la marcación',
+      confirmButtonColor: '#3B82F6',
+    });
+  }
+};
+
+// Funciones de modal
+const openPhoto = (marcacion) => {
+  selected.value = marcacion;
+  showPhoto.value = true;
+};
+
+const closePhoto = () => {
+  showPhoto.value = false;
+  selected.value = null;
+};
+
+const photoUrl = (foto) => {
+  if (!foto) return '';
+  return foto.startsWith('http') ? foto : `${import.meta.env.VITE_API_BASE_URL}/${foto}`;
+};
+
+const handleImageError = (event) => {
+  event.target.src = '/placeholder-image.png'; //  Puedes agregar un placeholder
+};
+
 onMounted(() => {
   const d = new Date();
   filters.fecha_inicio = new Date(d.getFullYear(), d.getMonth(), 1)
@@ -1068,4 +1686,5 @@ onMounted(() => {
   loadInstituciones();
   load();
 });
+// Force HMR update
 </script>

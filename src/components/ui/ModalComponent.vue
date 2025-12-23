@@ -12,24 +12,29 @@
 
           <!-- Modal content with responsive sizing and max-height -->
           <div 
+            v-bind="$attrs"
             :class="modalClasses" 
             class="max-h-screen sm:max-h-[90vh] overflow-y-auto scrollbar-thin"
             @click.stop
           >
-            <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-3 sm:pb-4 mb-3 sm:mb-4 sticky top-0 bg-white dark:bg-gray-800 z-10">
-              <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 pr-8">
+          <div v-if="!hideHeader" class="relative bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 px-4 sm:px-6 py-4 sm:py-5 -m-4 sm:-m-6 lg:-m-8 mb-4 sm:mb-6 sticky top-0 z-10 rounded-t-lg sm:rounded-t-xl">
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg sm:text-xl font-bold text-white pr-8">
                 {{ title }}
               </h3>
               <button
                 v-if="closable"
                 @click="closeModal"
-                class="absolute right-4 top-3 sm:top-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors touch-target"
+                class="text-white/80 hover:text-white hover:bg-white/10 p-2 rounded-lg transition-all duration-200 hover:scale-110 touch-target"
               >
                 <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
+            <!-- Decorative gradient line -->
+            <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400"></div>
+          </div>
 
             <div class="text-gray-700 dark:text-gray-300">
               <slot></slot>
@@ -46,7 +51,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -55,7 +60,7 @@ const props = defineProps({
   },
   title: {
     type: String,
-    required: true
+    default: ''
   },
   size: {
     type: String,
@@ -65,6 +70,14 @@ const props = defineProps({
   closable: {
     type: Boolean,
     default: true
+  },
+  hideHeader: {
+    type: Boolean,
+    default: false
+  },
+  noPadding: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -84,7 +97,9 @@ const modalClasses = computed(() => {
   }
 
   // Mobile: reduce padding, Desktop: normal padding
-  const padding = props.size === 'sm' ? 'p-4 sm:p-6' : 'p-4 sm:p-6 lg:p-8'
+  const padding = props.noPadding 
+    ? 'p-0 overflow-hidden' 
+    : (props.size === 'sm' ? 'p-4 sm:p-6' : 'p-4 sm:p-6 lg:p-8')
 
   return [base, sizes[props.size], padding]
 })
@@ -95,6 +110,24 @@ const closeModal = () => {
     emit('close')
   }
 }
+
+const handleKeydown = (e) => {
+  if (e.key === 'Escape' && props.modelValue) {
+    closeModal()
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('keydown', handleKeydown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeydown)
+})
+
+defineOptions({
+  inheritAttrs: false
+})
 </script>
 
 <style scoped>
