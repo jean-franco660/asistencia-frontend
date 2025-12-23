@@ -322,7 +322,7 @@
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
               </svg>
-              Resumen Diario
+              Estado Diario por Docente
               <span
                 v-if="activeTab === 'cabeceras'"
                 class="bg-white/20 px-2 py-1 rounded-lg text-xs"
@@ -345,7 +345,7 @@
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              Marcaciones Detalladas
+              Registros de Entrada/Salida
               <span
                 v-if="activeTab === 'marcaciones'"
                 class="bg-white/20 px-2 py-1 rounded-lg text-xs"
@@ -1047,49 +1047,88 @@ const getInstitucionNombre = (row) => {
 // ... (resumen logic needs update later or removed for now as endpoint changed) ... 
 
 const estadoLabel = (row) => {
+  // 1. Prioridad: Revisión Manual (Solo marcaciones)
   if (row.estado_revision === 'APROBADA') return 'Validada (Manual)';
   if (row.estado_revision === 'MANTENER_OBSERVADA') return 'Observada (Confirmada)';
 
+  // 2. Estado Diario (Cabeceras - Tab 1)
+  if (row.estado_diario) return row.estado_diario;
+
+  // 3. Estado Marcación (Detalle - Tab 2)
   if (row.estado_marcacion === "VALIDA") return "Válida";
   if (row.estado_marcacion === "OBSERVADA") return "Observada";
   if (row.estado_marcacion === "ANULADA") return "Anulada";
-  return row.estado_marcacion;
+  
+  return row.estado_marcacion || "Pendiente";
 };
 
 const estadoIcon = (row) => {
+  // 1. Revisión
   if (row.estado_revision === 'APROBADA')
      return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
   
   if (row.estado_revision === 'MANTENER_OBSERVADA')
      return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
 
+  // 2. Estado Diario (Cabeceras)
+  if (row.estado_diario === 'PRESENTE')
+    return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>';
+  if (row.estado_diario === 'TARDANZA')
+    return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
+  if (row.estado_diario === 'FALTA')
+    return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>';
+  if (row.estado_diario === 'JUSTIFICADO')
+    return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
+
+  // 3. Estado Marcación (Detalle)
   if (row.estado_marcacion === "VALIDA")
     return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>';
   if (row.estado_marcacion === "OBSERVADA")
     return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>';
   if (row.estado_marcacion === "ANULADA")
     return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>';
+  
   return "";
 };
 
 const getEstadoClass = (row) => {
+  // 1. Revisión
   if (row.estado_revision === 'APROBADA') return "text-green-600 dark:text-green-400";
   if (row.estado_revision === 'MANTENER_OBSERVADA') return "text-red-600 dark:text-red-400";
 
+  // 2. Estado Diario (Cabeceras)
+  if (row.estado_diario === 'PRESENTE') return "text-green-600 dark:text-green-400";
+  if (row.estado_diario === 'TARDANZA') return "text-yellow-600 dark:text-yellow-400";
+  if (row.estado_diario === 'FALTA') return "text-red-600 dark:text-red-400";
+  if (row.estado_diario === 'JUSTIFICADO') return "text-blue-600 dark:text-blue-400";
+
+  // 3. Estado Marcación (Detalle)
   if (row.estado_marcacion === "VALIDA") return "text-green-600 dark:text-green-400";
   if (row.estado_marcacion === "OBSERVADA") return "text-orange-600 dark:text-orange-400";
   if (row.estado_marcacion === "ANULADA") return "text-red-600 dark:text-red-400";
+  
   return "text-gray-500";
 };
 
 const formatDate = (dateString) => {
   if (!dateString) return "Sin fecha";
   try {
-    // Parse as UTC (timestamps from backend are in UTC with timezone offset)
+    // Extraemos solo la parte YYYY-MM-DD, ignorando la hora y zona horaria explícitamente
+    // Esto funciona tanto para "2025-12-22" como para "2025-12-22T00:00:00.000000Z"
+    let datePart = dateString;
+    if (dateString.includes('T')) {
+        datePart = dateString.split('T')[0];
+    }
+    
+    if (datePart.length === 10 && datePart.includes('-')) {
+        const [year, month, day] = datePart.split('-');
+        return `${day}/${month}/${year}`;
+    }
+
+    // Fallback por si llega algo muy raro
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return "Fecha inválida";
     
-    // Convert to America/Lima timezone for display
     return date.toLocaleDateString("es-PE", {
       timeZone: "America/Lima",
       day: "2-digit",
@@ -1105,11 +1144,9 @@ const formatDate = (dateString) => {
 const formatTime = (dateString) => {
   if (!dateString) return "--:--";
   try {
-    // Parse as UTC (timestamps from backend are in UTC with timezone offset)
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return "--:--";
     
-    // Convert to America/Lima timezone for display
     return date.toLocaleTimeString("es-PE", {
       timeZone: "America/Lima",
       hour: "2-digit",
@@ -1134,6 +1171,7 @@ const loadCabeceras = async (page = 1) => {
       search: filters.search || undefined,
       page,
       per_page: pagination.per_page,
+      _t: Date.now(), // 🕒 Anti-cache force
     };
 
     console.log("📤 Cargando cabeceras con params:", params);
@@ -1164,6 +1202,7 @@ const loadCabeceras = async (page = 1) => {
   } catch (error) {
     console.error("❌ Error cargando cabeceras:", error);
     cabeceras.value = [];
+
 
     Swal.fire({
       icon: "error",

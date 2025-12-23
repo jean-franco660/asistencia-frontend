@@ -815,9 +815,12 @@ const loadDashboardData = async () => {
   loading.value = true;
 
   try {
+    // Obtener fecha de hoy en formato YYYY-MM-DD
+    const hoy = new Date().toISOString().split('T')[0];
+    
     const [s, att, inst] = await Promise.allSettled([
       fetchStats(),
-      asistenciasService.getAll({ limit: 5 }),
+      asistenciasService.getAll({ limit: 10, fecha: hoy }), // ✅ Filtrar por hoy
       institucionesService.getAll({ limit: 5 }),
     ]);
 

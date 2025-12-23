@@ -193,7 +193,7 @@ export function useUsuariosForm(onSuccess) {
             show_dropdown: false,
             filtered_instituciones: [],
             cargo: "",
-            estado: "ACTIVO",
+            estado: "INACTIVO",
             fecha_inicio: null,
             fecha_fin: null,
             loading_instituciones: false,
@@ -279,6 +279,8 @@ export function useUsuariosForm(onSuccess) {
         const asignacion = form.asignaciones[index];
         asignacion.institucion_id = institucion.id;
         asignacion.institucion_search = institucion.nombre;
+        // Si tiene horarios (horarios_count > 0), estado ACTIVO, sino INACTIVO
+        asignacion.estado = (institucion.horarios_count && institucion.horarios_count > 0) ? "ACTIVO" : "INACTIVO";
         asignacion.show_dropdown = false;
     };
 

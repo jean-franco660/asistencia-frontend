@@ -191,17 +191,28 @@
             >
               {{ mode === "create" ? "Contraseña *" : "Nueva Contraseña" }}
             </label>
-            <input
-              v-model="form.password"
-              type="password"
-              :placeholder="
-                mode === 'create'
-                  ? 'Ingrese la contraseña'
-                  : 'Dejar vacío para mantener la actual'
-              "
-              :required="mode === 'create'"
-              class="w-full px-4 py-2.5 rounded-lg border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-red-400 focus:border-red-600 focus:ring-4 focus:ring-red-500/20 transition-all shadow-sm"
-            />
+            <div class="relative">
+              <input
+                v-model="form.password"
+                :type="showPassword ? 'text' : 'password'"
+                :placeholder="
+                  mode === 'create'
+                    ? 'Ingrese la contraseña'
+                    : 'Dejar vacío para mantener la actual'
+                "
+                :required="mode === 'create'"
+                class="w-full px-4 py-2.5 pr-12 rounded-lg border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-red-400 focus:border-red-600 focus:ring-4 focus:ring-red-500/20 transition-all shadow-sm"
+              />
+              <button
+                type="button"
+                @click="showPassword = !showPassword"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors focus:outline-none p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                :title="showPassword ? 'Ocultar contraseña' : 'Ver contraseña'"
+              >
+                <Eye v-if="!showPassword" :size="20" />
+                <EyeOff v-else :size="20" />
+              </button>
+            </div>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
               {{
                 mode === "create"
@@ -392,13 +403,21 @@
                     <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                       Estado
                     </label>
-                    <select
-                      v-model="asignacion.estado"
-                      class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-blue-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm cursor-pointer"
-                    >
-                      <option value="ACTIVO">✓ ACTIVO</option>
-                      <option value="INACTIVO">✕ INACTIVO</option>
-                    </select>
+                    <div class="w-full px-4 py-3 rounded-xl border-2 border-gray-100 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 flex items-center justify-between">
+                      <span
+                        class="text-sm font-bold px-3 py-1 rounded-lg"
+                        :class="
+                          asignacion.estado === 'ACTIVO'
+                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                            : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                        "
+                      >
+                        {{ asignacion.estado }}
+                      </span>
+                      <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                        {{ asignacion.estado === 'ACTIVO' ? 'Habilitado' : 'Requiere Horario' }}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 
@@ -521,8 +540,9 @@
 <script setup>
 import { 
   UserPlus, User, Hash, Lock, Building2, Plus, 
-  Trash2, Search, Loader2, X
+  Trash2, Search, Loader2, X, Eye, EyeOff
 } from 'lucide-vue-next';
+import { ref } from 'vue';
 import ModalComponent from "@/components/ui/ModalComponent.vue";
 import InputField from "@/components/ui/InputField.vue";
 import ButtonComponent from "@/components/ui/ButtonComponent.vue";
@@ -543,6 +563,10 @@ defineEmits([
   'searchInstitution',
   'selectInstitution',
   'clearInstitution',
+  'selectInstitution',
+  'clearInstitution',
   'hideDropdown'
 ]);
+
+const showPassword = ref(false);
 </script>

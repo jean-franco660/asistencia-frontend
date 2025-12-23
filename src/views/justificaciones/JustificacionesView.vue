@@ -660,6 +660,7 @@ const formatDate = (dateStr) => {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
+    timeZone: "UTC", // ✅ FIX: Interpretar como UTC para evitar shift de timezone
   });
 };
 
@@ -741,16 +742,21 @@ const rechazarJustificacion = async (just) => {
     );
     if (!result.isConfirmed || !result.value) return;
 
+    console.log("📤 Intentando rechazar justificación:", just.id, "Motivo:", result.value);
+    
     await justificacionesService.rechazar(just.id, {
       observaciones: result.value,
     });
 
+    console.log("✅ Justificación rechazada con éxito");
     alert.toastSuccess("Justificación rechazada");
 
     showDetailModal.value = false;
     loadJustificaciones();
   } catch (error) {
-    console.error("Error al rechazar:", error);
+    console.error("❌ Error al rechazar (catch):", error);
+    console.error("❌ Response data:", error.response?.data);
+    
     alert.error(
       "Error",
       error.response?.data?.error || "No se pudo rechazar la justificación"
