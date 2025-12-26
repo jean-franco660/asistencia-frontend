@@ -95,6 +95,8 @@ export function useUsuariosList(filterState) {
             usuarios.value = data.map((docente) => ({
                 ...docente,
                 codigo: docente.codigo_modular_docente || docente.codigo || "",
+                // ✅ FILTRO FRONTEND: Mostrar ACTIVO y PENDIENTE (Ocultar solo INACTIVO)
+                instituciones: (docente.instituciones || []).filter(inst => ['ACTIVO', 'PENDIENTE'].includes(inst.pivot?.estado))
             }));
 
             selectedIds.value = [];

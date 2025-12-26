@@ -201,6 +201,7 @@
                     : 'Dejar vacío para mantener la actual'
                 "
                 :required="mode === 'create'"
+                autocomplete="new-password"
                 class="w-full px-4 py-2.5 pr-12 rounded-lg border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-red-400 focus:border-red-600 focus:ring-4 focus:ring-red-500/20 transition-all shadow-sm"
               />
               <button
@@ -282,7 +283,7 @@
                 <button
                   type="button"
                   @click="$emit('removeAssignment', index)"
-                  class="text-gray-400 hover:text-red-600 dark:hover:text-red-400 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                  class="text-gray-400 hover:text-red-600 dark:hover:text-red-400 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
                   title="Eliminar asignación"
                 >
                   <Trash2 :size="18" />

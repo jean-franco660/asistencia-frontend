@@ -51,23 +51,25 @@ export function useUsuariosForm(onSuccess) {
             sexo: null,
             acceso_habilitado: u.acceso_habilitado ?? true,
             password: "",
-            asignaciones: (u.instituciones || []).map((inst) => ({
-                institucion_id: inst.id,
-                institucion_search: inst.nombre || "",
-                show_dropdown: false,
-                filtered_instituciones: [],
-                cargo: inst.pivot?.cargo || "",
-                estado: inst.pivot?.estado || "ACTIVO",
-                fecha_inicio: inst.pivot?.fecha_inicio || null,
-                fecha_fin: inst.pivot?.fecha_fin || null,
+            asignaciones: (u.instituciones || [])
+                .filter(inst => inst.pivot?.estado === 'ACTIVO') // ✅ Solo cargar asignaciones ACTIVAS
+                .map((inst) => ({
+                    institucion_id: inst.id,
+                    institucion_search: inst.nombre || "",
+                    show_dropdown: false,
+                    filtered_instituciones: [],
+                    cargo: inst.pivot?.cargo || "",
+                    estado: inst.pivot?.estado || "ACTIVO",
+                    fecha_inicio: inst.pivot?.fecha_inicio || null,
+                    fecha_fin: inst.pivot?.fecha_fin || null,
 
-                loading_instituciones: false,
-                _debounce: null,
-                _abort: null,
+                    loading_instituciones: false,
+                    _debounce: null,
+                    _abort: null,
 
-                _institucion_nombre: inst.nombre || null,
-                _institucion_codigo: inst.codigo_modular_ie || null,
-            })),
+                    _institucion_nombre: inst.nombre || null,
+                    _institucion_codigo: inst.codigo_modular_ie || null,
+                })),
         });
         modalMode.value = "edit";
         showModal.value = true;
@@ -126,6 +128,14 @@ export function useUsuariosForm(onSuccess) {
             }
         }
 
+        // Validar duplicados de institución
+        const institucionesIds = form.asignaciones.map(a => a.institucion_id);
+        const uniqueIds = new Set(institucionesIds);
+        if (uniqueIds.size !== institucionesIds.length) {
+            alert.error("Validación", "No puede asignar la misma institución más de una vez a un mismo usuario.");
+            return;
+        }
+
         submitting.value = true;
 
         try {
@@ -155,14 +165,15 @@ export function useUsuariosForm(onSuccess) {
 
             if (modalMode.value === "create") {
                 await usuariosService.create(payload);
+                closeModal();
                 alert.toastSuccess("Docente creado correctamente");
             } else {
                 await usuariosService.update(form.id, payload);
+                closeModal();
                 alert.toastSuccess("Docente actualizado correctamente");
             }
 
             if (onSuccess) await onSuccess();
-            closeModal();
         } catch (err) {
             console.error("Error al guardar docente:", err);
             if (err.response?.status === 422) {

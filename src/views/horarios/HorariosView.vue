@@ -370,6 +370,170 @@
         </template>
       </div>
 
+      <!-- Estadísticas Panel -->
+      <div 
+        v-if="institucionId && !loadingHorarios"
+        class="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-800 dark:via-gray-750 dark:to-gray-700 rounded-2xl shadow-xl border border-blue-200 dark:border-gray-600 p-4 sm:p-6"
+      >
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100">Estadísticas</h3>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+          <!-- Total Horarios -->
+          <div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-md border border-gray-200 dark:border-gray-600">
+            <div class="flex items-center gap-2 mb-2">
+              <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Total</span>
+            </div>
+            <p class="text-2xl font-bold text-gray-800 dark:text-gray-100">{{ statistics.total }}</p>
+          </div>
+
+          <!-- Mañana -->
+          <div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-md border border-gray-200 dark:border-gray-600">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-lg">☀️</span>
+              <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Mañana</span>
+            </div>
+            <p class="text-2xl font-bold text-amber-600 dark:text-amber-400">{{ statistics.manana }}</p>
+          </div>
+
+          <!-- Tarde -->
+          <div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-md border border-gray-200 dark:border-gray-600">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-lg">🌤️</span>
+              <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Tarde</span>
+            </div>
+            <p class="text-2xl font-bold text-orange-600 dark:text-orange-400">{{ statistics.tarde }}</p>
+          </div>
+
+          <!-- Noche -->
+          <div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-md border border-gray-200 dark:border-gray-600">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-lg">🌙</span>
+              <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Noche</span>
+            </div>
+            <p class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{{ statistics.noche }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filtros Panel -->
+      <div 
+        v-if="institucionId && horarios.length > 0"
+        class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6"
+      >
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100">Filtros</h3>
+          <button
+            v-if="filtroActivo"
+            @click="limpiarFiltros"
+            class="ml-auto text-xs px-3 py-1.5 rounded-lg bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-all"
+          >
+            Limpiar filtros
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Filtro por Turno -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Filtrar por Turno
+            </label>
+            <select
+              v-model="filtros.turno"
+              class="w-full border-2 border-gray-200 dark:border-gray-600 rounded-xl p-3 bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+            >
+              <option value="">Todos los turnos</option>
+              <option value="MAÑANA">☀️ Mañana</option>
+              <option value="TARDE">🌤️ Tarde</option>
+              <option value="NOCHE">🌙 Noche</option>
+            </select>
+          </div>
+
+          <!-- Filtro por Días -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Filtrar por Día
+            </label>
+            <select
+              v-model="filtros.dia"
+              class="w-full border-2 border-gray-200 dark:border-gray-600 rounded-xl p-3 bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+            >
+              <option value="">Todos los días</option>
+              <option value="L">Lunes</option>
+              <option value="M">Martes</option>
+              <option value="X">Miércoles</option>
+              <option value="J">Jueves</option>
+              <option value="V">Viernes</option>
+              <option value="S">Sábado</option>
+              <option value="D">Domingo</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Conteo de resultados filtrados -->
+        <div v-if="filtroActivo" class="mt-3 text-sm text-gray-600 dark:text-gray-400">
+          Mostrando {{ horariosFiltrados.length }} de {{ horarios.length }} horarios
+        </div>
+      </div>
+
+      <!-- Alerta para Supervisores sin Horarios -->
+      <div
+        v-if="!loadingHorarios && horarios.length === 0 && institucionId && auth.user?.rol === 'supervisor'"
+        class="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border-2 border-orange-300 dark:border-orange-700 rounded-2xl shadow-xl p-6"
+      >
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0">
+            <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="flex-1">
+            <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-2">
+              ⚠️ Tu institución no tiene horarios configurados
+            </h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Para que los docentes puedan marcar asistencia, necesitas configurar al menos un horario (turno mañana, tarde o noche) con sus respectivas horas de entrada y salida.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-3">
+              <button
+                @click="openCreate"
+                class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Crear Primer Horario
+              </button>
+              <a
+                href="#"
+                class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white dark:bg-gray-700 border-2 border-orange-300 dark:border-orange-600 text-orange-700 dark:text-orange-400 font-semibold rounded-xl hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Ver Guía
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Botón crear Premium -->
       <div class="flex justify-end">
         <button
@@ -477,7 +641,7 @@
 
             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
               <tr
-                v-for="h in horarios"
+                v-for="h in horariosFiltrados"
                 :key="`horario-${h.institucion_id || institucionId}-${h.id}-${
                   h.nombre_turno
                 }`"
@@ -657,6 +821,65 @@
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- Instituciones sin Horarios -->
+      <div
+        v-if="!loadingHorarios && institucionesSinHorarios.length > 0 && (auth.user?.rol === 'administrador' || auth.user?.rol === 'super_admin')"
+        class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-orange-200 dark:border-orange-700 overflow-hidden"
+      >
+        <div class="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/30 dark:to-red-900/30 px-4 sm:px-6 py-4 border-b border-orange-200 dark:border-orange-600">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center flex-shrink-0">
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+              </svg>
+            </div>
+            <div class="flex-1">
+              <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100">
+                Instituciones sin Horarios Asignados
+              </h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                {{ institucionesSinHorarios.length }} institución(es) requiere(n) configuración de horario
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-4 sm:p-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div
+              v-for="inst in institucionesSinHorarios"
+              :key="`sin-horario-${inst.id}`"
+              class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-750 dark:to-gray-700 rounded-xl p-4 border-2 border-dashed border-orange-300 dark:border-orange-600 hover:border-orange-500 dark:hover:border-orange-400 transition-all group"
+            >
+              <div class="flex items-start gap-3">
+                <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-400 to-red-400 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                  </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="font-semibold text-gray-800 dark:text-gray-100 truncate text-sm">
+                    <span class="text-orange-600 dark:text-orange-400 font-semibold text-xs">I.E.</span> {{ inst.nombre }}
+                  </p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    CM: {{ inst.codigo_modular_ie }}
+                  </p>
+                  <button
+                    @click="crearHorarioParaInstitucion(inst.id)"
+                    class="mt-3 w-full px-3 py-2 text-xs font-semibold bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:shadow-lg transform hover:scale-105 transition-all flex items-center justify-center gap-2"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Crear Horario
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -938,6 +1161,95 @@ const diasOpciones = [
   { nombre: "Sábado", valor: "S" },
   { nombre: "Domingo", valor: "D" },
 ];
+
+// Filtros state
+const filtros = ref({
+  turno: "",
+  dia: "",
+});
+
+// Computed: Estadísticas
+const statistics = computed(() => {
+  const total = horarios.value.length;
+  const manana = horarios.value.filter(h => h.nombre_turno === 'MAÑANA').length;
+  const tarde = horarios.value.filter(h => h.nombre_turno === 'TARDE').length;
+  const noche = horarios.value.filter(h => h.nombre_turno === 'NOCHE').length;
+  
+  return { total, manana, tarde, noche };
+});
+
+// Computed: Horarios filtrados
+const horariosFiltrados = computed(() => {
+  let resultado = horarios.value;
+
+  // Filtrar por turno
+  if (filtros.value.turno) {
+    resultado = resultado.filter(h => h.nombre_turno === filtros.value.turno);
+  }
+
+  // Filtrar por día
+  if (filtros.value.dia) {
+    resultado = resultado.filter(h => {
+      const dias = h.dias_laborales || h.dias_semana;
+      if (!dias) return false;
+      if (Array.isArray(dias)) return dias.includes(filtros.value.dia);
+      if (typeof dias === 'string') {
+        try {
+          const parsed = JSON.parse(dias);
+          return Array.isArray(parsed) && parsed.includes(filtros.value.dia);
+        } catch {
+          return dias.includes(filtros.value.dia);
+        }
+      }
+      return false;
+    });
+  }
+
+  return resultado;
+});
+
+// Computed: Verificar si hay filtros activos
+const filtroActivo = computed(() => {
+  return filtros.value.turno || filtros.value.dia;
+});
+
+// Método: Limpiar filtros
+const limpiarFiltros = () => {
+  filtros.value.turno = "";
+  filtros.value.dia = "";
+};
+
+// Computed: Instituciones sin horarios
+const institucionesSinHorarios = computed(() => {
+  if (!instituciones.value.length) return [];
+  
+  // Obtener IDs de instituciones con horarios
+  const institucionesConHorarios = new Set();
+  horarios.value.forEach(h => {
+    if (h.institucion_id) {
+      institucionesConHorarios.add(h.institucion_id);
+    }
+  });
+
+  // Filtrar instituciones que NO tienen horarios
+  return instituciones.value.filter(inst => !institucionesConHorarios.has(inst.id));
+});
+
+// Método: Crear horario para institución específica
+const crearHorarioParaInstitucion = (instId) => {
+  institucionId.value = instId;
+  
+  // Actualizar cache de institución seleccionada
+  const inst = instituciones.value.find(i => i.id === instId);
+  if (inst) {
+    selectedInstitucionNombre.value = inst.nombre;
+    selectedInstitucionCodigo.value = inst.codigo_modular_ie;
+    institucionSearchQuery.value = `IE ${inst.nombre}`;
+  }
+  
+  // Abrir modal de creación
+  openCreate();
+};
 
 const mostrarSelector = computed(() => {
   return (

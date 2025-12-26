@@ -216,9 +216,9 @@
           </div>
         </div>
 
-        <div v-if="usuario.asignaciones?.length" class="space-y-4">
+        <div v-if="activeAsignaciones?.length" class="space-y-4">
           <div 
-            v-for="(asig, index) in usuario.asignaciones"
+            v-for="(asig, index) in activeAsignaciones"
             :key="index"
             class="group bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-300"
           >
@@ -342,11 +342,54 @@
             </svg>
           </div>
           <p class="text-base font-bold text-gray-700 dark:text-gray-300 mb-1">
-            Sin asignaciones
+            Sin asignaciones activas
           </p>
           <p class="text-sm text-gray-500 dark:text-gray-400">
-            Este usuario no tiene instituciones asignadas
+            Este usuario no tiene instituciones vigentes
           </p>
+        </div>
+
+        <!-- SECCIÓN HISTORIAL -->
+        <div v-if="inactiveAsignaciones?.length" class="mt-8 pt-6 border-t-2 border-gray-200 dark:border-gray-700">
+          <div class="flex items-center gap-2 mb-4">
+             <div class="w-8 h-8 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                 <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                 </svg>
+             </div>
+             <h4 class="text-base font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+               Historial de Asignaciones Pasadas
+             </h4>
+          </div>
+
+          <div class="space-y-3">
+             <div 
+               v-for="(oldAsig, i) in inactiveAsignaciones" 
+               :key="'old'+i"
+               class="flex flex-col sm:flex-row gap-4 p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors opacity-75 hover:opacity-100"
+             >
+                <div class="flex items-center gap-3 min-w-0 flex-1">
+                   <div class="w-10 h-10 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center flex-shrink-0 text-gray-400 font-bold">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                      </svg>
+                   </div>
+                   <div>
+                      <p class="font-bold text-sm text-gray-600 dark:text-gray-400">
+                         {{ oldAsig.institucion?.nombre_display || oldAsig.institucion?.nombre }}
+                      </p>
+                      <p class="text-xs text-gray-500">
+                        {{ oldAsig.cargo }} • {{ formatDate(oldAsig.fecha_inicio) }} - {{ formatDate(oldAsig.fecha_fin) }}
+                      </p>
+                   </div>
+                </div>
+                <div class="flex items-center">
+                   <span class="px-3 py-1 rounded-lg bg-gray-200 dark:bg-gray-700 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
+                     Inactivo
+                   </span>
+                </div>
+             </div>
+          </div>
         </div>
       </div>
       </div>
@@ -386,6 +429,19 @@ watch(() => props.isOpen, (newVal) => {
     usuario.value = null;
     error.value = null;
   }
+});
+
+import { computed } from 'vue';
+
+const activeAsignaciones = computed(() => {
+  return usuario.value?.asignaciones?.filter(a => ['ACTIVO', 'PENDIENTE'].includes(a.estado)) || [];
+});
+
+const inactiveAsignaciones = computed(() => {
+  if (!usuario.value?.asignaciones) return [];
+  return usuario.value.asignaciones
+    .filter(a => a.estado === 'INACTIVO')
+    .sort((a, b) => new Date(b.fecha_fin || b.updated_at) - new Date(a.fecha_fin || a.updated_at));
 });
 
 const fetchDetail = async () => {

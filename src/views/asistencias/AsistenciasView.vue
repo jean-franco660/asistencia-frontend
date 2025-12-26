@@ -43,10 +43,10 @@
               </div>
             </div>
           </div>
-          <div class="flex gap-3">
             <button
+              v-if="userRole === 'supervisor'"
               @click="exportToExcel"
-              :disabled="pagination.total === 0 || !!filters.institucion_id"
+              :disabled="loading"
               class="group relative px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl font-semibold shadow-lg shadow-green-500/50 hover:shadow-xl hover:shadow-green-500/60 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               <span class="flex items-center gap-2">
@@ -63,10 +63,9 @@
                     d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                Exportar Excel
+                Exportar Reporte
               </span>
             </button>
-          </div>
         </div>
       </div>
 
@@ -172,41 +171,73 @@
               </svg>
               Institución
             </label>
-            <select
-              v-model="filters.institucion_id"
-              class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 dark:text-white"
-            >
-              <option value="">
-                {{
-                  userRole === "supervisor"
-                    ? "Mis instituciones"
-                    : "Todas las instituciones"
-                }}
-              </option>
-              <option v-for="i in instituciones" :key="i.id" :value="i.id">
-                {{ i.nombre }} {{ i.codigo_modular_ie ? `(${i.codigo_modular_ie})` : "" }}
-              </option>
-            </select>
-            <button
-              v-if="filters.institucion_id"
-              @click="exportInstitucionReport"
-              class="mt-2 w-full text-xs bg-indigo-100 hover:bg-indigo-200 text-indigo-700 py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1 font-medium transform hover:scale-105"
-            >
-              <svg
-                class="w-3.5 h-3.5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                />
+              <!-- Filtro Estático para Supervisores -->
+            <div v-if="userRole === 'supervisor'" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl text-gray-700 dark:text-gray-300 font-medium truncate flex items-center">
+              <svg class="w-5 h-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2-2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
               </svg>
-              Descargar Reporte Detallado
-            </button>
+              {{ instituciones.length > 0 ? instituciones[0].nombre : 'Cargando...' }}
+            </div>
+
+            <!-- Búsqueda Autocomplete para Administradores -->
+            <div v-else class="relative group">
+              <div class="relative">
+                <input
+                  type="text"
+                  v-model="institucionSearch"
+                  placeholder="Buscar por nombre o código..."
+                  @focus="showInstitucionDropdown = true"
+                  @keydown.esc="showInstitucionDropdown = false"
+                  class="w-full px-4 py-3 pl-10 bg-gray-50 dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 dark:text-white placeholder-gray-400"
+                />
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <!-- Botón para limpiar selección -->
+                <button 
+                  v-if="filters.institucion_id"
+                  @click="clearInstitucionSelection"
+                  class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Lista desplegable (Dropup) -->
+              <div 
+                v-if="showInstitucionDropdown" 
+                class="absolute z-50 w-full bottom-full mb-2 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-100 dark:border-gray-700 max-h-60 overflow-y-auto"
+              >
+                <div v-if="filteredInstituciones.length === 0" class="p-4 text-center text-gray-500 dark:text-gray-400">
+                  No se encontraron resultados
+                </div>
+                <ul v-else class="py-1">
+                  <li 
+                    v-for="i in filteredInstituciones" 
+                    :key="i.id"
+                    @click="selectInstitucion(i)"
+                    class="px-4 py-3 hover:bg-blue-50 dark:hover:bg-gray-700 cursor-pointer transition-colors flex flex-col border-b border-gray-50 dark:border-gray-700/50 last:border-0"
+                  >
+                    <span class="font-medium text-gray-900 dark:text-gray-100">{{ i.nombre }}</span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400" v-if="i.codigo_modular_ie">
+                      Cód: {{ i.codigo_modular_ie }}
+                    </span>
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Overlay invisible para cerrar al hacer clic fuera -->
+              <div 
+                v-if="showInstitucionDropdown" 
+                @click="showInstitucionDropdown = false"
+                class="fixed inset-0 z-40 bg-transparent"
+              ></div>
+            </div>
+
           </div>
 
           <!-- Tipo -->
@@ -573,19 +604,11 @@
                 <td class="px-6 py-4">
                   <span
                     :class="[
-                      'px-3 py-1 rounded-full text-xs font-bold uppercase',
-                      cabecera.estado_diario === 'FALTA'
-                        ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                        : cabecera.estado_diario === 'TARDANZA'
-                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                        : cabecera.estado_diario === 'PRESENTE'
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                        : cabecera.estado_diario === 'JUSTIFICADO'
-                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                        : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+                      'inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold uppercase whitespace-nowrap min-w-[80px]',
+                      getEstadoDiarioClass(cabecera)
                     ]"
                   >
-                    {{ cabecera.estado_diario || 'PENDIENTE' }}
+                    {{ getEstadoDiarioLabel(cabecera) }}
                   </span>
                 </td>
 
@@ -996,6 +1019,32 @@ const showPhoto = ref(false);
 const showDetail = ref(false);
 const selected = ref(null);
 
+// ⭐ NUEVO HOY: Búsqueda Instituciones (Admin)
+const institucionSearch = ref("");
+const showInstitucionDropdown = ref(false);
+
+const filteredInstituciones = computed(() => {
+  const term = institucionSearch.value.toLowerCase().trim();
+  if (!term) return instituciones.value.slice(0, 10); // Mostrar primeros 10 si no hay búsqueda
+  
+  return instituciones.value.filter(i => 
+    i.nombre.toLowerCase().includes(term) || 
+    (i.codigo_modular_ie && i.codigo_modular_ie.toString().includes(term))
+  ).slice(0, 10);
+});
+
+const selectInstitucion = (inst) => {
+  filters.institucion_id = inst.id;
+  institucionSearch.value = inst.nombre;
+  showInstitucionDropdown.value = false;
+};
+
+const clearInstitucionSelection = () => {
+  filters.institucion_id = null;
+  institucionSearch.value = "";
+  showInstitucionDropdown.value = false;
+};
+
 // ⭐ FASE 6: Estado para cola de revisión
 const reviewQueue = ref([]); // Array de IDs de marcaciones observadas
 const currentReviewIndex = ref(0); // Índice actual en la cola
@@ -1108,6 +1157,45 @@ const getEstadoClass = (row) => {
   if (row.estado_marcacion === "ANULADA") return "text-red-600 dark:text-red-400";
   
   return "text-gray-500";
+};
+
+// ⭐ NUEVO: Helpers para estado diario (Falta vs Falta Parcial)
+const getEstadoDiarioLabel = (cabecera) => {
+  if (cabecera.estado_diario === 'FALTA') {
+    // Si tiene alguna marcación (entrada o salida) pero el estado es FALTA, es Parcial
+    if (cabecera.hora_entrada || cabecera.hora_salida) {
+      return 'FALTA PARCIAL';
+    }
+  }
+  return cabecera.estado_diario || 'PENDIENTE';
+};
+
+const getEstadoDiarioClass = (cabecera) => {
+  const estado = cabecera.estado_diario;
+
+  if (estado === 'FALTA') {
+    if (cabecera.hora_entrada || cabecera.hora_salida) {
+      // Falta Parcial: Orange/Amber
+      return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
+    }
+    // Falta Total: Red
+    return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+  }
+
+  if (estado === 'TARDANZA') {
+    return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+  }
+  
+  if (estado === 'PRESENTE') {
+    return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+  }
+  
+  if (estado === 'JUSTIFICADO') {
+    return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+  }
+
+  // Pendiente u otro
+  return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
 };
 
 const formatDate = (dateString) => {
@@ -1483,8 +1571,16 @@ const loadInstituciones = async () => {
 
     if (res.data?.success && res.data?.data) {
       instituciones.value = Array.isArray(res.data.data) ? res.data.data : [];
+      
+      // Auto-seleccionar si es supervisor
+      if (userRole.value === 'supervisor' && instituciones.value.length > 0) {
+        filters.institucion_id = instituciones.value[0].id;
+      }
     } else if (Array.isArray(res.data)) {
       instituciones.value = res.data;
+      if (userRole.value === 'supervisor' && instituciones.value.length > 0) {
+        filters.institucion_id = instituciones.value[0].id;
+      }
     } else {
       instituciones.value = [];
     }
@@ -1510,6 +1606,10 @@ const clearFilters = () => {
   filters.institucion_id = null;
   filters.tipo = null;
   filters.search = "";
+  
+  // Limpiar búsqueda inst
+  institucionSearch.value = "";
+  showInstitucionDropdown.value = false;
 
   Swal.fire({
     icon: "success",
@@ -1531,146 +1631,80 @@ const goToPage = (page) => {
   }
 };
 
-const exportInstitucionReport = async () => {
-  if (!filters.institucion_id) return;
-
-  try {
-    Swal.fire({
-      title: "Generando Reporte...",
-      text: "Descargando datos detallados de la institución.",
-      showConfirmButton: false,
-      allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading();
-      },
-    });
-
-    const params = {
-      fecha_inicio: filters.fecha_inicio || undefined,
-      fecha_fin: filters.fecha_fin || undefined,
-    };
-
-    const response = await asistenciasService.exportarInstitucion(filters.institucion_id, params);
-
-    // Manejar la descarga del blob
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement('a');
-    link.href = url;
-    
-    const contentDisposition = response.headers['content-disposition'];
-    let filename = `Reporte_Institucion.xlsx`; 
-    if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename="?(.+?)"?$/);
-        if (filenameMatch && filenameMatch.length > 1) {
-            filename = filenameMatch[1];
-        }
-    }
-    
-    link.setAttribute('download', filename);
-    document.body.appendChild(link);
-    link.click();
-
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-
-    Swal.close();
-    Swal.fire({
-      icon: "success",
-      title: "¡Reporte Descargado!",
-      text: "Se ha generado el reporte detallado correctamente.",
-      confirmButtonColor: "#10B981",
-      timer: 2000,
-      timerProgressBar: true,
-    });
-
-  } catch (error) {
-    console.error("❌ Error exportando reporte institucional:", error);
-    Swal.close();
-
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: error.response?.data?.message || "No se pudo generar el reporte institucional.",
-      confirmButtonColor: "#EF4444",
-    });
-  }
-};
-
 const exportToExcel = async () => {
-  if (pagination.total === 0) {
-    Swal.fire({
-      icon: "warning",
-      title: "Sin datos",
-      text: "No hay datos para exportar",
-      confirmButtonColor: "#3B82F6",
-    });
-    return;
-  }
+  // 1. Validar restricción para Supervisors
+  if (userRole.value === 'supervisor') {
+    let idInstitucion = filters.institucion_id;
 
-  try {
-    Swal.fire({
-      title: "Exportando...",
-      html: "Generando archivo Excel, por favor espere",
-      allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading();
-      },
-    });
+    // Si no ha seleccionado en filtro, intentamos usar la primera asignada
+    if (!idInstitucion) {
+      if (instituciones.value.length >= 1) {
+        idInstitucion = instituciones.value[0].id;
+      } else {
+         Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "No tienes instituciones asignadas para exportar.",
+          confirmButtonColor: "#EF4444",
+        });
+        return;
+      }
+    }
 
-    const params = {
-      fecha_inicio: filters.fecha_inicio || undefined,
-      fecha_fin: filters.fecha_fin || undefined,
-      institucion_id: filters.institucion_id || undefined,
-      tipo: filters.tipo || undefined,
-    };
+    try {
+      Swal.fire({
+        title: "Generando Reporte Institucional...",
+        text: "Procesando datos detallados...",
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+      });
 
-    const response = await asistenciasService.exportar(params);
+      const params = {
+        fecha_inicio: filters.fecha_inicio || undefined,
+        fecha_fin: filters.fecha_fin || undefined,
+      };
 
-    const blob = new Blob([response.data], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
+      const response = await asistenciasService.exportarInstitucion(idInstitucion, params);
+      
+      // Download Logic
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = `Reporte_Institucion_${idInstitucion}.xlsx`; 
+      if (contentDisposition) {
+          const match = contentDisposition.match(/filename="?(.+?)"?$/);
+          if (match && match.length > 1) filename = match[1];
+      }
+      
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
 
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
+      Swal.fire({
+        icon: "success",
+        title: "¡Reporte Generado!",
+        text: "La descarga ha comenzado.",
+        confirmButtonColor: "#10B981",
+        timer: 2000,
+      });
 
-    const institucionNombre = filters.institucion_id
-      ? instituciones.value.find((i) => i.id === filters.institucion_id)?.nombre ||
-        "Seleccionada"
-      : userRole.value === "supervisor"
-      ? "Mis_Instituciones"
-      : "Todas";
-
-    const fecha_inicio = filters.fecha_inicio || "inicio";
-    const fecha_fin = filters.fecha_fin || "fin";
-    link.download = `Asistencias_${institucionNombre}_${fecha_inicio}_a_${fecha_fin}.xlsx`;
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-
-    Swal.fire({
-      icon: "success",
-      title: "¡Exportado!",
-      text: "El archivo se descargó correctamente",
-      confirmButtonColor: "#10B981",
-      timer: 3000,
-      timerProgressBar: true,
-    });
-  } catch (error) {
-    console.error("❌ Error al exportar:", error);
-
-    Swal.fire({
-      icon: "error",
-      title: "Error al exportar",
-      text:
-        error.response?.data?.message ||
-        "No se pudo generar el archivo. Intenta nuevamente.",
-      confirmButtonColor: "#EF4444",
-    });
+    } catch (error) {
+      console.error("❌ Error exportando institución:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.response?.data?.message || "No se pudo generar el reporte.",
+        confirmButtonColor: "#EF4444",
+      });
+    }
   }
 };
+
 
 // ⭐ FASE 6: Abrir modal con cola de revisión
 const openDetailModal = async (marcacion) => {

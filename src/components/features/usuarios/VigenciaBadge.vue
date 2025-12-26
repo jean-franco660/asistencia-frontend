@@ -23,7 +23,10 @@ const vigenciaStatus = computed(() => {
   
   // 1. Prioridad: Lo que diga el backend
   if (vigente === true) return 'VIGENTE';
-  
+
+  // Si es PENDIENTE (sin horario asignado)
+  if (estado === 'PENDIENTE') return 'SIN_HORARIO';
+
   // Si estado no es ACTIVO, es INACTIVA
   if (estado !== 'ACTIVO') return 'INACTIVA';
   
@@ -67,6 +70,8 @@ const badgeClass = computed(() => {
       return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
     case 'PROGRAMADA_BAJA':
       return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+    case 'SIN_HORARIO':
+      return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
     case 'INACTIVA':
       return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
     default:
@@ -79,6 +84,8 @@ const badgeIcon = computed(() => {
     case 'VIGENTE':
       return CheckCircle2;
     case 'PROGRAMADA_BAJA':
+      return Clock;
+    case 'SIN_HORARIO':
       return Clock;
     case 'INACTIVA':
       return XCircle;
@@ -93,6 +100,8 @@ const badgeText = computed(() => {
       return 'VIGENTE';
     case 'PROGRAMADA_BAJA':
       return 'PROGRAMADA BAJA';
+    case 'SIN_HORARIO':
+      return 'SIN HORARIO';
     case 'INACTIVA':
       return 'INACTIVA';
     default:
