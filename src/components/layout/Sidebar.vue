@@ -131,6 +131,21 @@ const menuItems = [
       ]),
   },
   {
+    name: "gestion-horarios",
+    label: "Asignaciones",
+    path: "/gestion-horarios",
+    roles: ["super_admin", "administrador", "supervisor"],
+    icon: () =>
+      h("svg", { fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" }, [
+        h("path", {
+          "stroke-linecap": "round",
+          "stroke-linejoin": "round",
+          "stroke-width": "2",
+          d: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
+        }),
+      ]),
+  },
+  {
     name: "supervisores",
     label: "Supervisores",
     path: "/supervisores",
@@ -218,7 +233,7 @@ const menuItems = [
     name: "reportes",
     label: "Reportes",
     path: "/reportes",
-    roles: ["super_admin", "administrador", "supervisor"],
+    roles: ["super_admin", "administrador"],
     icon: () =>
       h("svg", { fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" }, [
         h("path", {

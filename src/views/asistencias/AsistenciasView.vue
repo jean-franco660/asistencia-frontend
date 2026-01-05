@@ -171,12 +171,30 @@
               </svg>
               Institución
             </label>
-              <!-- Filtro Estático para Supervisores -->
-            <div v-if="userRole === 'supervisor'" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl text-gray-700 dark:text-gray-300 font-medium truncate flex items-center">
-              <svg class="w-5 h-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2-2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            <!-- Dropdown SELECT para Supervisores -->
+            <div v-if="userRole === 'supervisor'" class="relative">
+              <select
+                v-model="filters.institucion_id"
+                @change="handleInstitutionChange"
+                class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-gray-100 font-medium focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 outline-none appearance-none cursor-pointer hover:border-blue-400"
+              >
+                <option value="">Todas mis instituciones</option>
+                <option
+                  v-for="inst in instituciones"
+                  :key="inst.id"
+                  :value="inst.id"
+                >
+                  {{ inst.nombre }}
+                </option>
+              </select>
+              <svg 
+                class="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none"
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
-              {{ instituciones.length > 0 ? instituciones[0].nombre : 'Cargando...' }}
             </div>
 
             <!-- Búsqueda Autocomplete para Administradores -->
@@ -1563,6 +1581,12 @@ const handleApproveAndNext = async () => {
 };
 
 
+const handleInstitutionChange = () => {
+    // Recargar datos al cambiar la institución
+    load(1);
+};
+
+
 const loadInstituciones = async () => {
   try {
     const res = await institucionesService.getMias();
@@ -1572,15 +1596,15 @@ const loadInstituciones = async () => {
     if (res.data?.success && res.data?.data) {
       instituciones.value = Array.isArray(res.data.data) ? res.data.data : [];
       
-      // Auto-seleccionar si es supervisor
-      if (userRole.value === 'supervisor' && instituciones.value.length > 0) {
-        filters.institucion_id = instituciones.value[0].id;
-      }
+      // Auto-seleccionar: No forzar selección para permitir "Todas"
+      // if (userRole.value === 'supervisor' && instituciones.value.length > 0) {
+      //   filters.institucion_id = instituciones.value[0].id;
+      // }
     } else if (Array.isArray(res.data)) {
       instituciones.value = res.data;
-      if (userRole.value === 'supervisor' && instituciones.value.length > 0) {
-        filters.institucion_id = instituciones.value[0].id;
-      }
+      // if (userRole.value === 'supervisor' && instituciones.value.length > 0) {
+      //   filters.institucion_id = instituciones.value[0].id;
+      // }
     } else {
       instituciones.value = [];
     }
@@ -1632,76 +1656,74 @@ const goToPage = (page) => {
 };
 
 const exportToExcel = async () => {
-  // 1. Validar restricción para Supervisors
-  if (userRole.value === 'supervisor') {
-    let idInstitucion = filters.institucion_id;
+  try {
+    const isSpecific = !!filters.institucion_id;
+    const title = isSpecific ? "Reporte Institucional" : "Reporte General";
 
-    // Si no ha seleccionado en filtro, intentamos usar la primera asignada
-    if (!idInstitucion) {
-      if (instituciones.value.length >= 1) {
-        idInstitucion = instituciones.value[0].id;
-      } else {
-         Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "No tienes instituciones asignadas para exportar.",
-          confirmButtonColor: "#EF4444",
-        });
-        return;
-      }
+    Swal.fire({
+      title: `Generando ${title}...`,
+      text: "Procesando datos detallados...",
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+    });
+
+    const params = {
+      fecha_inicio: filters.fecha_inicio || undefined,
+      fecha_fin: filters.fecha_fin || undefined,
+      // Si es reporte general, podemos pasar otros filtros si quisiéramos
+      tipo: filters.tipo || undefined, 
+    };
+
+    let response;
+    
+    if (isSpecific) {
+      // 1. Reporte Específico de una Institución
+      response = await asistenciasService.exportarInstitucion(filters.institucion_id, params);
+    } else {
+      // 2. Reporte General (Todas las instituciones asignadas)
+      // El backend filtra automáticamente por las instituciones del supervisor
+      response = await asistenciasService.exportar(params);
     }
 
-    try {
-      Swal.fire({
-        title: "Generando Reporte Institucional...",
-        text: "Procesando datos detallados...",
-        showConfirmButton: false,
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading(),
-      });
+    // Download Logic
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    
+    const contentDisposition = response.headers['content-disposition'];
+    let filename = isSpecific 
+      ? `Reporte_Institucion_${filters.institucion_id}.xlsx` 
+      : `Reporte_Asistencias_${new Date().toISOString().slice(0,10)}.xlsx`;
 
-      const params = {
-        fecha_inicio: filters.fecha_inicio || undefined,
-        fecha_fin: filters.fecha_fin || undefined,
-      };
-
-      const response = await asistenciasService.exportarInstitucion(idInstitucion, params);
-      
-      // Download Logic
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      
-      const contentDisposition = response.headers['content-disposition'];
-      let filename = `Reporte_Institucion_${idInstitucion}.xlsx`; 
-      if (contentDisposition) {
-          const match = contentDisposition.match(/filename="?(.+?)"?$/);
-          if (match && match.length > 1) filename = match[1];
-      }
-      
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
-      Swal.fire({
-        icon: "success",
-        title: "¡Reporte Generado!",
-        text: "La descarga ha comenzado.",
-        confirmButtonColor: "#10B981",
-        timer: 2000,
-      });
-
-    } catch (error) {
-      console.error("❌ Error exportando institución:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: error.response?.data?.message || "No se pudo generar el reporte.",
-        confirmButtonColor: "#EF4444",
-      });
+    if (contentDisposition) {
+        const match = contentDisposition.match(/filename="?(.+?)"?$/);
+        if (match && match.length > 1) filename = match[1];
     }
+    
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    Swal.fire({
+      icon: "success",
+      title: "¡Reporte Generado!",
+      text: "La descarga ha comenzado.",
+      confirmButtonColor: "#10B981",
+      timer: 2000,
+      timerProgressBar: true,
+    });
+
+  } catch (error) {
+    console.error("❌ Error exportando:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: error.response?.data?.message || "No se pudo generar el reporte.",
+      confirmButtonColor: "#EF4444",
+    });
   }
 };
 

@@ -63,8 +63,53 @@
           </label>
         </div>
 
-        <!-- Mostrar selector solo si es admin o tiene múltiples instituciones -->
-        <template v-if="mostrarSelector">
+        <!-- Mostrar dropdown para supervisores, búsqueda para admins -->
+        <template v-if="auth.user?.rol === 'supervisor'">
+          <!-- Dropdown SELECT para supervisores -->
+          <div class="relative">
+            <select
+              v-model="institucionId"
+              @change="onSelectInstitucion"
+              class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 text-sm sm:text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 outline-none appearance-none cursor-pointer hover:border-blue-400"
+            >
+              <option value="">Selecciona una institución...</option>
+              <option
+                v-for="inst in instituciones"
+                :key="inst.id"
+                :value="inst.id"
+              >
+                I.E. {{ inst.nombre }}
+              </option>
+            </select>
+            <svg 
+              class="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+          
+          <!-- Institución seleccionada info -->
+          <div
+            v-if="institucionId"
+            class="mt-3 p-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl border-2 border-blue-300 dark:border-blue-700"
+          >
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+              </svg>
+              <span class="text-sm text-gray-600 dark:text-gray-400">
+                Código Modular:
+                <span class="font-mono font-semibold text-gray-800 dark:text-gray-200">{{ selectedInstitucionCodigo || 'N/A' }}</span>
+              </span>
+            </div>
+          </div>
+        </template>
+
+        <!-- Campo de búsqueda para administradores y super_admin -->
+        <template v-else-if="mostrarSelector">
           <div class="relative inst-search-horarios">
             <div class="relative">
               <svg
@@ -427,7 +472,7 @@
 
       <!-- Filtros Panel -->
       <div 
-        v-if="institucionId && horarios.length > 0"
+        v-if="institucionId && horarios.length > 0 && auth.user?.rol !== 'supervisor'"
         class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6"
       >
         <div class="flex items-center gap-3 mb-4">
@@ -1369,6 +1414,24 @@ const getInstitucionCodigo = (institucionIdParam) => {
     (i) => String(i.id) === String(institucionIdParam)
   );
   return inst?.codigo_modular_ie || "N/A";
+};
+
+// Método para el dropdown select (supervisores)
+const onSelectInstitucion = async () => {
+  if (!institucionId.value) {
+    selectedInstitucionNombre.value = null;
+    selectedInstitucionCodigo.value = null;
+    horarios.value = [];
+    return;
+  }
+  
+  const inst = instituciones.value.find(i => String(i.id) === String(institucionId.value));
+  if (inst) {
+    selectedInstitucionNombre.value = inst.nombre;
+    selectedInstitucionCodigo.value = inst.codigo_modular_ie;
+  }
+  
+  await loadHorarios();
 };
 
 // ✅ Click-outside robusto (no depende de clases genéricas)

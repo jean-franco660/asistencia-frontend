@@ -142,9 +142,8 @@
 
               <!-- Opciones del menu -->
               <div class="py-1">
-                <!-- Mi Perfil - Solo para supervisores -->
+                <!-- Mi Perfil - Para todos los usuarios web -->
                 <button
-                  v-if="user?.rol === 'supervisor'"
                   @click="handleProfile"
                   class="w-full text-left flex items-center px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
@@ -164,8 +163,8 @@
                   Mi Perfil
                 </button>
 
-                <!-- Separador solo si hay Mi Perfil -->
-                <div v-if="user?.rol === 'supervisor'" class="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+                <!-- Separador -->
+                <div class="border-t border-gray-200 dark:border-gray-700 my-1"></div>
 
                 <button
                   @click="confirmLogout"
@@ -238,19 +237,19 @@ const toggleDarkMode = () => {
 
 const getRoleLabel = (rol) => {
   const roles = {
+    super_admin: "Super Administrador",
     administrador: "Administrador",
-    director: "Director",
-    docente: "Docente",
+    supervisor: "Supervisor",
   };
   return roles[rol] || rol;
 };
 
 const getRoleBadgeClass = (rol) => {
   const classes = {
-    administrador:
+    super_admin:
       "bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300",
-    director: "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300",
-    docente: "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300",
+    administrador: "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300",
+    supervisor: "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300",
   };
   return classes[rol] || "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
 };

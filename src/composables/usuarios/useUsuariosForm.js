@@ -52,7 +52,7 @@ export function useUsuariosForm(onSuccess) {
             acceso_habilitado: u.acceso_habilitado ?? true,
             password: "",
             asignaciones: (u.instituciones || [])
-                .filter(inst => inst.pivot?.estado === 'ACTIVO') // ✅ Solo cargar asignaciones ACTIVAS
+                // .filter(inst => inst.pivot?.estado === 'ACTIVO') // REMOVED: Mostrar todas las asignaciones
                 .map((inst) => ({
                     institucion_id: inst.id,
                     institucion_search: inst.nombre || "",

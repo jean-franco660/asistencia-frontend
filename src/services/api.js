@@ -46,6 +46,7 @@ export const authService = {
 export const usuariosWebService = {
   getAll: (params) => api.get('/usuarios-web', { params }),
   getPendientes: () => api.get('/usuarios-web/pendientes'),
+  getById: (id) => api.get(`/usuarios-web/${id}`),
   create: (data) => api.post('/usuarios-web', data),
 
   update: (id, data) =>
@@ -278,6 +279,15 @@ export const statsService = {
   getSupervisorDashboard: () => api.get('/supervisor/dashboard'),
   getSemana: () => api.get('/asistencias/semana'),
   getMesGrafico: (params) => api.get('/asistencias/mes-grafico', { params }),
+}
+
+// =======================
+// Gestión de Horarios (Auto-asignación)
+// =======================
+export const horariosGestionService = {
+  getAsignaciones: (params) => api.get('/horarios-gestion/asignaciones', { params }),
+  getHistorial: (params) => api.get('/horarios-gestion/historial', { params }),
+  modificar: (data) => api.post('/horarios-gestion/modificar', data),
 }
 
 // =======================

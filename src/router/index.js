@@ -59,6 +59,13 @@ const routes = [
   },
 
   {
+    path: '/gestion-horarios',
+    name: 'GestionHorarios',
+    component: () => import('@/views/horarios/GestionAsignacionesView.vue'),
+    meta: { requiresAuth: true, roles: ['super_admin', 'administrador', 'supervisor'] }
+  },
+
+  {
     path: '/supervisores',
     name: 'Supervisores',
     component: () => import('@/views/supervisores/SupervisoresListView.vue'),
@@ -69,7 +76,7 @@ const routes = [
     path: '/perfil',
     name: 'Perfil',
     component: () => import('@/views/perfil/PerfilView.vue'),
-    meta: { requiresAuth: true, roles: ['supervisor'] }
+    meta: { requiresAuth: true, roles: ['super_admin', 'administrador', 'supervisor'] }
   },
 
   // ✅ CAMBIO: Solo super_admin puede acceder
@@ -107,7 +114,7 @@ const routes = [
     path: '/reportes',
     name: 'Reportes',
     component: () => import('@/views/reportes/ReportesView.vue'),
-    meta: { requiresAuth: true, roles: ['super_admin', 'administrador', 'supervisor'] }
+    meta: { requiresAuth: true, roles: ['super_admin', 'administrador'] }
   },
 
   // Default

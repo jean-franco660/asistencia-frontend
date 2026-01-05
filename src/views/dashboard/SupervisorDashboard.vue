@@ -113,7 +113,7 @@
 
       <!-- Stats Cards Principal -->
       <div class="grid gap-6 grid-cols-1 lg:grid-cols-3">
-        <!-- Institución Card -->
+        <!-- Institución Selector Card -->
         <div
           class="group relative overflow-hidden bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/20 dark:border-gray-700/50 hover:shadow-2xl transition-all duration-500 hover:-translate-y-1 lg:col-span-2"
           :class="{ 'animate-pulse': loading }"
@@ -144,28 +144,51 @@
                   />
                 </svg>
               </div>
-              <span
-                class="px-3 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-full text-xs font-semibold"
-              >
-                Principal
-              </span>
             </div>
 
             <div>
-              <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-                Institución Educativa
-              </p>
-              <h3
-                class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 dark:from-blue-400 dark:to-cyan-400 bg-clip-text text-transparent"
-              >
-                {{ loading ? "Cargando..." : stats.institucion || "No asignada" }}
-              </h3>
+              <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">
+                Institución
+              </label>
+              
+              <!-- Institution Selector -->
+              <div class="relative" v-if="!loading">
+                <select
+                  v-model="selectedInstitucionId"
+                  @change="onInstitucionChange"
+                  class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 outline-none appearance-none cursor-pointer hover:border-blue-400"
+                >
+                  <option
+                    v-for="inst in instituciones"
+                    :key="inst.id"
+                    :value="inst.id"
+                  >
+                    I.E. {{ inst.nombre }}
+                  </option>
+                </select>
+                <svg 
+                  class="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+  </div>
+              
+              <div v-else>
+                <div class="h-12 bg-slate-200 dark:bg-slate-700 rounded-xl animate-pulse"></div>
+              </div>
+
               <p
-                v-if="!loading && stats.codigo_modular"
-                class="text-sm text-gray-500 dark:text-gray-400 mt-2"
+                v-if="!loading && selectedInstitucion?.codigo_modular_ie"
+                class="text-sm text-gray-500 dark:text-gray-400 mt-3 flex items-center gap-2"
               >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                </svg>
                 Código Modular:
-                <span class="font-mono font-semibold">{{ stats.codigo_modular }}</span>
+                <span class="font-mono font-semibold">{{ selectedInstitucion.codigo_modular_ie }}</span>
               </p>
             </div>
           </div>
@@ -558,8 +581,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import api from "@/services/api";
+
+const instituciones = ref([]);
+const selectedInstitucionId = ref(null);
 
 const stats = ref({
   institucion: "",
@@ -585,10 +611,18 @@ const currentDate = computed(() => {
   return new Date().toLocaleDateString("es-ES", options);
 });
 
+const selectedInstitucion = computed(() => {
+  return instituciones.value.find(i => i.id === selectedInstitucionId.value);
+});
+
 const attendancePercentage = computed(() => {
   if (stats.value.docentes === 0) return 0;
   return Math.round((stats.value.asistencias_hoy / stats.value.docentes) * 100);
 });
+
+const onInstitucionChange = async () => {
+  await loadStatsForInstitution(selectedInstitucionId.value);
+};
 
 const loadStats = async () => {
   loading.value = true;
@@ -600,6 +634,14 @@ const loadStats = async () => {
     console.log("📊 Stats recibidas:", response.data);
 
     const data = response.data;
+
+    // Store all institutions
+    instituciones.value = data.instituciones || [];
+    
+    // Select first institution by default
+    if (instituciones.value.length > 0) {
+      selectedInstitucionId.value = instituciones.value[0].id;
+    }
 
     stats.value = {
       institucion:
@@ -619,6 +661,37 @@ const loadStats = async () => {
     };
 
     console.log("✅ Stats mapeadas:", stats.value);
+  } catch (err) {
+    console.error("❌ Error cargando stats:", err);
+    error.value = err.response?.data?.message || "Error al cargar las estadísticas";
+  } finally {
+    loading.value = false;
+  }
+};
+
+const loadStatsForInstitution = async (institucionId) => {
+  if (!institucionId) return;
+  
+  loading.value = true;
+  error.value = null;
+  
+  try {
+    const response = await api.get("/supervisor/dashboard", {
+      params: { institucion_id: institucionId }
+    });
+    
+    const data = response.data;
+    
+    stats.value = {
+      institucion: selectedInstitucion.value?.nombre || "No asignada",
+      codigo_modular: selectedInstitucion.value?.codigo_modular_ie || "",
+      total_instituciones: data.resumen?.total_instituciones || 0,
+      docentes: data.resumen?.total_usuarios_app || 0,
+      asistencias_hoy: data.resumen?.asistencias_hoy || 0,
+      ausencias_hoy: data.resumen?.ausencias_hoy || 0,
+      justificaciones_pendientes: data.resumen?.justificaciones_pendientes || 0,
+      registros_asistencia_hoy: data.resumen?.registros_asistencia_hoy || 0,
+    };
   } catch (err) {
     console.error("❌ Error cargando stats:", err);
     error.value = err.response?.data?.message || "Error al cargar las estadísticas";

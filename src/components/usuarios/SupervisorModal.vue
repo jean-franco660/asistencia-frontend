@@ -97,26 +97,58 @@
                 <label class="text-sm font-medium text-white/70">
                   {{ isEditMode ? 'Nueva Contraseña (Opcional)' : 'Contraseña' }} <span v-if="!isEditMode" class="text-red-400">*</span>
                 </label>
-                <input
-                  v-model="manualForm.password"
-                  type="password"
-                  :required="!isEditMode"
-                  minlength="8"
-                  class="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/50 transition-all placeholder-white/20 shadow-inner"
-                  :placeholder="isEditMode ? 'Dejar vacío si no cambia' : 'Mínimo 8 caracteres'"
-                />
+                <div class="relative">
+                  <input
+                    v-model="manualForm.password"
+                    :type="showPassword ? 'text' : 'password'"
+                    :required="!isEditMode"
+                    minlength="8"
+                    class="w-full bg-black/20 border border-white/10 rounded-xl p-3 pr-11 text-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/50 transition-all placeholder-white/20 shadow-inner"
+                    :placeholder="isEditMode ? 'Dejar vacío si no cambia' : 'Mínimo 8 caracteres'"
+                  />
+                  <button
+                    type="button"
+                    @click="showPassword = !showPassword"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-white/40 hover:text-white/70 transition-colors"
+                    :aria-label="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                  >
+                    <svg v-if="!showPassword" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                    </svg>
+                  </button>
+                </div>
               </div>
 
                <!-- Password Confirm -->
               <div class="space-y-2" v-if="!isEditMode || manualForm.password">
                 <label class="text-sm font-medium text-white/70">Confirmar Contraseña <span class="text-red-400">*</span></label>
-                <input
-                  v-model="manualForm.password_confirmation"
-                  type="password"
-                  required
-                  class="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/50 transition-all placeholder-white/20 shadow-inner"
-                  placeholder="Repetir contraseña"
-                />
+                <div class="relative">
+                  <input
+                    v-model="manualForm.password_confirmation"
+                    :type="showPasswordConfirm ? 'text' : 'password'"
+                    required
+                    class="w-full bg-black/20 border border-white/10 rounded-xl p-3 pr-11 text-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/50 transition-all placeholder-white/20 shadow-inner"
+                    placeholder="Repetir contraseña"
+                  />
+                  <button
+                    type="button"
+                    @click="showPasswordConfirm = !showPasswordConfirm"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-white/40 hover:text-white/70 transition-colors"
+                    :aria-label="showPasswordConfirm ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                  >
+                    <svg v-if="!showPasswordConfirm" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -265,7 +297,29 @@
                         </div>
                         <div class="space-y-1">
                            <label class="text-sm font-medium text-white/70">Password</label>
-                           <input v-model="provForm.password" type="password" required minlength="8" class="w-full bg-black/20 border border-white/10 rounded-lg p-2.5 text-white focus:ring-1 focus:ring-cyan-500/50" placeholder="Min 8 chars" />
+                           <div class="relative">
+                             <input
+                               v-model="provForm.password"
+                               :type="showProvPassword ? 'text' : 'password'"
+                               required
+                               minlength="8"
+                               class="w-full bg-black/20 border border-white/10 rounded-lg p-2.5 pr-10 text-white focus:ring-1 focus:ring-cyan-500/50"
+                               placeholder="Min 8 chars"
+                             />
+                             <button
+                               type="button"
+                               @click="showProvPassword = !showProvPassword"
+                               class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-white/40 hover:text-white/70 transition-colors"
+                             >
+                               <svg v-if="!showProvPassword" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                               </svg>
+                               <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                               </svg>
+                             </button>
+                           </div>
                         </div>
                      </div>
 
@@ -384,6 +438,9 @@ const instSearch = ref('');
 const showInstDropdown = ref(false);
 const availableInstitutions = ref([]);
 const loadingInsts = ref(false);
+const showPassword = ref(false);
+const showPasswordConfirm = ref(false);
+const showProvPassword = ref(false);
 
 // --- Provision Mode State ---
 const provSearchQuery = ref('');
