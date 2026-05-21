@@ -302,22 +302,48 @@ const progress = ref(0);
 const result = ref(null);
 const importId = ref(null);
 
-let pollTimer = null;
-let retryCount = 0; // ⭐ NUEVO
-const MAX_RETRIES = 3; // ⭐ NUEVO
-let currentInterval = 3000; // ⭐ NUEVO - Empezar con 3 segundos
+// ✅ Variables de control de polling
+let retryCount = 0;
+const MAX_RETRIES = 3;
 
-const clearPoll = () => {
+// ✅ Control de polling único con intervalo dinámico
+let pollingActive = false;
+let pollTimer = null;
+let currentInterval = 3000;
+
+// ✅ Flag para prevenir múltiples ejecuciones simultáneas de checkImportStatus
+let isCheckingStatus = false;
+
+const startPolling = () => {
+  if (pollingActive || isCheckingStatus) return; // Evita múltiples intervalos y race conditions
+  pollingActive = true;
+  pollTimer = setInterval(checkImportStatus, currentInterval);
+};
+
+const stopPolling = () => {
   if (pollTimer) {
     clearInterval(pollTimer);
     pollTimer = null;
   }
-  retryCount = 0; // ⭐ NUEVO
-  currentInterval = 3000; // ⭐ NUEVO - Reset
+  pollingActive = false;
+  isCheckingStatus = false; // ✅ Resetear flag de ejecución
+  retryCount = 0;
+  currentInterval = 3000; // Reset
+};
+
+const updatePollingInterval = (newInterval) => {
+  if (!pollingActive || isCheckingStatus) return; // Evita race conditions
+  
+  // Detener el intervalo actual
+  clearInterval(pollTimer);
+  
+  // Actualizar intervalo y crear nuevo timer
+  currentInterval = newInterval;
+  pollTimer = setInterval(checkImportStatus, currentInterval);
 };
 
 onBeforeUnmount(() => {
-  clearPoll();
+  stopPolling(); // ✅ Limpiar al desmontar
 });
 
 const normalizeStatusPayload = (payload) => {
@@ -366,7 +392,7 @@ const handleFileSelect = (event) => {
   selectedFile.value = file;
   result.value = null;
   importId.value = null;
-  clearPoll();
+  stopPolling(); // ✅ Limpiar polling al seleccionar archivo
 };
 
 const handleDrop = (event) => {
@@ -383,7 +409,7 @@ const handleDrop = (event) => {
   selectedFile.value = file;
   result.value = null;
   importId.value = null;
-  clearPoll();
+  stopPolling(); // ✅ Limpiar polling al arrastrar archivo
 };
 
 const clearFile = () => {
@@ -391,7 +417,7 @@ const clearFile = () => {
   result.value = null;
   importId.value = null;
   progress.value = 0;
-  clearPoll();
+  stopPolling(); // ✅ Usar stopPolling
 };
 
 const bumpProgressUntil = (max = 90) => {
@@ -400,6 +426,14 @@ const bumpProgressUntil = (max = 90) => {
 
 // ⭐ NUEVA FUNCIÓN DE POLLING CON BACKOFF
 const checkImportStatus = async () => {
+  // ✅ Prevenir múltiples ejecuciones simultáneas
+  if (isCheckingStatus) {
+    console.log("ℹ️ checkImportStatus ya está ejecutándose, saltando...");
+    return;
+  }
+  
+  isCheckingStatus = true;
+  
   try {
     bumpProgressUntil(90);
     const statusResp = await props.statusFunction(importId.value);
@@ -408,6 +442,11 @@ const checkImportStatus = async () => {
     // Reset retry count en éxito
     retryCount = 0;
     currentInterval = 3000; // Reset interval
+    
+    // ✅ Resetear intervalo del polling a valor original
+    if (pollingActive && currentInterval !== 3000) {
+      updatePollingInterval(3000);
+    }
 
     // Mostrar avances parciales
     result.value = {
@@ -419,7 +458,7 @@ const checkImportStatus = async () => {
     };
 
     if (normalized.done) {
-      clearPoll();
+      stopPolling(); // ✅ Detener polling cuando termine
       progress.value = 100;
       uploading.value = false;
 
@@ -443,12 +482,12 @@ const checkImportStatus = async () => {
       retryCount++;
 
       if (retryCount >= MAX_RETRIES) {
-        console.error("Máximo de reintentos alcanzado");
-        clearPoll();
+        console.error("Máximo de reintentos alcanzado por rate limit");
+        stopPolling(); // ✅ Detener definitivamente
         result.value = {
           success: false,
           message:
-            "Se alcanzó el límite de consultas. Por favor, recarga la página en unos segundos.",
+            "Demasiadas importaciones. Intenta de nuevo en 1 minuto.",
           total: 0,
           importados: 0,
           errores: 0,
@@ -459,18 +498,20 @@ const checkImportStatus = async () => {
       }
 
       // Aumentar intervalo exponencialmente: 3s → 5s → 8s → 10s (max)
-      currentInterval = Math.min(currentInterval * 1.67, 10000);
+      const newInterval = Math.min(currentInterval * 1.67, 10000);
       console.warn(
-        `Rate limit detectado (intento ${retryCount}/${MAX_RETRIES}), aumentando intervalo a ${currentInterval}ms`
+        `Rate limit detectado (intento ${retryCount}/${MAX_RETRIES}), aumentando intervalo a ${newInterval}ms`
       );
 
-      // Reiniciar polling con nuevo intervalo
-      clearPoll();
-      pollTimer = setInterval(checkImportStatus, currentInterval);
+      // ✅ Actualizar intervalo del polling existente
+      updatePollingInterval(newInterval);
     } else {
       // Otros errores - continuar intentando pero no aumentar tanto
       console.warn("Error temporal en polling, continuando...");
     }
+  } finally {
+    // ✅ Siempre resetear el flag
+    isCheckingStatus = false;
   }
 };
 
@@ -481,7 +522,7 @@ const handleImport = async () => {
   progress.value = 10;
   result.value = null;
   importId.value = null;
-  clearPoll();
+  stopPolling(); // ✅ Asegurar que no hay polling activo
 
   try {
     // 1) Disparar importación
@@ -509,17 +550,17 @@ const handleImport = async () => {
     importId.value = import_id;
     progress.value = 25;
 
-    // ⭐ 2) Iniciar polling con intervalo adaptativo (empieza en 3 segundos)
+    // ⭐ 2) Iniciar polling controlado (empieza en 3 segundos)
     currentInterval = 3000;
     retryCount = 0;
 
     // Primera llamada inmediata
     checkImportStatus();
 
-    // Luego cada X segundos
-    pollTimer = setInterval(checkImportStatus, currentInterval);
+    // Luego iniciar polling controlado
+    startPolling();
   } catch (error) {
-    clearPoll();
+    stopPolling(); // ✅ Detener polling en error
     result.value = {
       success: false,
       message: error.response?.data?.message || "Error al iniciar la importación",
@@ -553,6 +594,7 @@ const handleDownloadErrorReport = async () => {
 
 const closeModal = () => {
   if (uploading.value) return;
+  stopPolling(); // ✅ Detener polling al cerrar
   clearFile();
   emit("update:modelValue", false);
 };

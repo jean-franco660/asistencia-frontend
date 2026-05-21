@@ -45,27 +45,6 @@ const routes = [
   },
 
   {
-    path: '/feriados',
-    name: 'feriados',
-    component: () => import('@/views/feriados/Feriados.vue'),
-    meta: { requiresAuth: true, roles: ['super_admin', 'administrador', 'supervisor'] }
-  },
-
-  {
-    path: '/justificaciones',
-    name: 'Justificaciones',
-    component: () => import('@/views/justificaciones/JustificacionesView.vue'),
-    meta: { requiresAuth: true, roles: ['super_admin', 'administrador', 'supervisor'] }
-  },
-
-  {
-    path: '/gestion-horarios',
-    name: 'GestionHorarios',
-    component: () => import('@/views/horarios/GestionAsignacionesView.vue'),
-    meta: { requiresAuth: true, roles: ['super_admin', 'administrador', 'supervisor'] }
-  },
-
-  {
     path: '/supervisores',
     name: 'Supervisores',
     component: () => import('@/views/supervisores/SupervisoresListView.vue'),

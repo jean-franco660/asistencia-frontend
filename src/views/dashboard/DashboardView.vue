@@ -588,10 +588,10 @@
                 </div>
                 <div class="text-center">
                   <p class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                    Sin datos de asistencias
+                    Aún no hay asistencias registradas
                   </p>
                   <p class="text-sm text-gray-500 dark:text-gray-400">
-                    No hay registros de asistencias este mes
+                    Los datos aparecerán cuando registres tu primera asistencia del mes
                   </p>
                 </div>
               </div>
@@ -697,10 +697,13 @@ const loadMonthlyChart = async () => {
       return;
     }
 
-    if (!Array.isArray(data.labels) || data.labels.length === 0) {
-      console.warn("⚠️ data.labels NO es un array válido", data.labels);
+    // Manejo correcto (recomendado)
+    if (!data || !Array.isArray(data.labels) || data.labels.length === 0) {
+      // mostrar estado vacío en UI
+      console.warn("⚠️ No hay datos para mostrar en el gráfico mensual");
       monthlyLabels.value = [];
       monthlyData.value = [];
+      monthlyPeriod.value = data?.periodo?.mes || "";
       return;
     }
 
@@ -770,7 +773,7 @@ const pieChartData = computed(() => {
   });
 
   if (!monthlyData.value || monthlyData.value.length === 0) {
-    console.log("⚠️ monthlyData está vacío");
+    console.log("ℹ️ No hay datos mensuales para el gráfico circular");
     return [];
   }
 
@@ -783,7 +786,7 @@ const pieChartData = computed(() => {
   console.log("📊 Totales calculados:", { totalAsistencias, totalFaltas });
 
   if (totalAsistencias === 0 && totalFaltas === 0) {
-    console.log("⚠️ No hay datos (ambos en 0)");
+    console.log("ℹ️ No hay asistencias ni faltas registradas este mes");
     return [];
   }
 

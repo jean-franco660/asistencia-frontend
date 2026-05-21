@@ -415,7 +415,56 @@
         </template>
       </div>
 
-      <!-- Estadísticas Panel -->
+      <!-- Tabs -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg mb-6 p-1 border border-gray-200 dark:border-gray-700">
+        <div class="flex gap-1">
+          <button
+            @click="activeTab = 'turnos'"
+            :class="[
+              'flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2',
+              activeTab === 'turnos'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg transform scale-[1.02]'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+            ]"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Turnos
+          </button>
+          <button
+            @click="activeTab = 'asignaciones'"
+            :class="[
+              'flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2',
+              activeTab === 'asignaciones'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg transform scale-[1.02]'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+            ]"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            Asignaciones
+          </button>
+          <button
+            @click="activeTab = 'historial'"
+            :class="[
+              'flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2',
+              activeTab === 'historial'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg transform scale-[1.02]'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+            ]"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            Historial
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab Turnos -->
+      <div v-if="activeTab === 'turnos'">
       <div 
         v-if="institucionId && !loadingHorarios"
         class="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-800 dark:via-gray-750 dark:to-gray-700 rounded-2xl shadow-xl border border-blue-200 dark:border-gray-600 p-4 sm:p-6"
@@ -929,6 +978,107 @@
       </div>
     </div>
 
+    <!-- Modal de Asignación -->
+    <div
+      v-if="mostrarModalAsignacion"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in"
+      @click.self="cerrarModalAsignacion"
+    >
+      <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden animate-scale-in border border-gray-200 dark:border-gray-700">
+        <!-- Modal Header -->
+        <div class="p-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="p-3 bg-white/20 rounded-xl backdrop-blur">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-2xl font-bold">Modificar Horarios</h2>
+                <p class="text-blue-100 text-sm mt-0.5">{{ asignacionSeleccionada?.nombres }} {{ asignacionSeleccionada?.apellido_paterno }}</p>
+              </div>
+            </div>
+            <button @click="cerrarModalAsignacion" class="p-2 hover:bg-white/20 rounded-lg transition-colors">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div class="mt-3 flex items-center gap-2 text-sm text-blue-100">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            I.E. {{ asignacionSeleccionada?.institucion }}
+          </div>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6 max-h-[calc(90vh-220px)] overflow-y-auto">
+          <div class="mb-4">
+            <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Selecciona los horarios disponibles
+            </h3>
+          </div>
+          <div class="space-y-3">
+            <label
+              v-for="horario in horariosDisponibles"
+              :key="horario.id"
+              class="flex items-center p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 group"
+              :class="horariosSeleccionados.includes(horario.id) 
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-md' 
+                : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-gray-50 dark:hover:bg-gray-700/50'"
+            >
+              <input
+                type="checkbox"
+                :value="horario.id"
+                v-model="horariosSeleccionados"
+                class="w-5 h-5 text-blue-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all"
+              />
+              <div class="ml-4 flex-1">
+                <div class="flex items-center justify-between">
+                  <div class="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                    <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {{ horario.nombre_turno }}
+                  </div>
+                  <span v-if="horariosSeleccionados.includes(horario.id)" class="px-2 py-1 bg-blue-600 text-white rounded-full text-xs font-bold">Seleccionado</span>
+                </div>
+                <div class="text-sm text-gray-600 dark:text-gray-400 mt-1 flex items-center gap-2">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {{ horario.hora_entrada }} - {{ horario.hora_salida }}
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="p-6 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+          <button @click="cerrarModalAsignacion" class="px-6 py-2.5 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-2 border-gray-300 dark:border-gray-600 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 shadow-sm hover:shadow">
+            Cancelar
+          </button>
+          <button
+            @click="guardarCambiosAsignacion"
+            :disabled="guardandoAsignacion || horariosSeleccionados.length === 0"
+            class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-md flex items-center gap-2"
+          >
+            <svg v-if="!guardandoAsignacion" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <div v-else class="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+            {{ guardandoAsignacion ? 'Guardando...' : 'Guardar Cambios' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal Premium -->
     <transition name="modal">
       <div
@@ -1152,6 +1302,7 @@
       </div>
     </transition>
   </div>
+  </div>
 </template>
 
 <script setup>
@@ -1173,7 +1324,7 @@ const saving = ref(false);
 const modalOpen = ref(false);
 const editMode = ref(false);
 
-// ✅ Buscador server-side (mismo patrón que Docentes)
+// Buscador server-side (mismo patrón que Docentes)
 const institucionSearchQuery = ref("");
 const showInstitucionDropdown = ref(false);
 const filteredInstituciones = ref([]);
@@ -1196,6 +1347,33 @@ const form = ref({
   tolerancia_salida_minutos: 5,
   dias_semana: [],
 });
+
+// Tabs
+const activeTab = ref('turnos');
+
+// Asignaciones
+const asignaciones = ref([]);
+const loadingAsignaciones = ref(false);
+const filtrosAsignaciones = ref({
+  usuario: '',
+  institucion: '',
+  institucion_id: '',
+});
+
+// Historial
+const historial = ref([]);
+const loadingHistorial = ref(false);
+const filtrosHistorial = ref({
+  fecha_desde: '',
+  fecha_hasta: '',
+});
+
+// Modal asignación
+const mostrarModalAsignacion = ref(false);
+const asignacionSeleccionada = ref(null);
+const horariosDisponibles = ref([]);
+const horariosSeleccionados = ref([]);
+const guardandoAsignacion = ref(false);
 
 const diasOpciones = [
   { nombre: "Lunes", valor: "L" },
@@ -1385,7 +1563,11 @@ const seleccionarInstitucion = async (inst) => {
   selectedInstitucionCodigo.value = inst.codigo_modular_ie;
 
   showInstitucionDropdown.value = false;
-  await loadHorarios();
+  await Promise.all([
+    loadHorarios(),
+    cargarAsignaciones(),
+    cargarHistorial()
+  ]);
 };
 
 const limpiarInstitucion = () => {
@@ -1422,6 +1604,8 @@ const onSelectInstitucion = async () => {
     selectedInstitucionNombre.value = null;
     selectedInstitucionCodigo.value = null;
     horarios.value = [];
+    asignaciones.value = [];
+    historial.value = [];
     return;
   }
   
@@ -1431,7 +1615,11 @@ const onSelectInstitucion = async () => {
     selectedInstitucionCodigo.value = inst.codigo_modular_ie;
   }
   
-  await loadHorarios();
+  await Promise.all([
+    loadHorarios(),
+    cargarAsignaciones(),
+    cargarHistorial()
+  ]);
 };
 
 // ✅ Click-outside robusto (no depende de clases genéricas)
@@ -1469,7 +1657,11 @@ const loadInstituciones = async () => {
       // precargar sugerencias
       filteredInstituciones.value = instituciones.value.slice(0, 10);
 
-      await loadHorarios();
+      await Promise.all([
+        loadHorarios(),
+        cargarAsignaciones(),
+        cargarHistorial()
+      ]);
     } else {
       // no hay instituciones asignadas
       institucionId.value = "";
@@ -1703,6 +1895,124 @@ const confirmDelete = async (id) => {
     console.error("❌ Error eliminando horario:", e);
     alert.error("Error", "No se pudo eliminar el horario");
   }
+};
+
+// =========================
+// Asignaciones
+// =========================
+const cargarAsignaciones = async () => {
+  if (!institucionId.value) return;
+  loadingAsignaciones.value = true;
+  try {
+    const filtros = { ...filtrosAsignaciones.value };
+    if (institucionId.value) filtros.institucion_id = institucionId.value;
+    const response = await api.get('/horarios/asignaciones', { params: filtros });
+    asignaciones.value = response.data.data || [];
+  } catch (error) {
+    console.error('Error al cargar asignaciones:', error);
+    asignaciones.value = [];
+  } finally {
+    loadingAsignaciones.value = false;
+  }
+};
+
+// =========================
+// Historial
+// =========================
+const cargarHistorial = async () => {
+  if (!institucionId.value) return;
+  loadingHistorial.value = true;
+  try {
+    const filtros = { ...filtrosHistorial.value };
+    if (institucionId.value) filtros.institucion_id = institucionId.value;
+    const response = await api.get('/horarios/historial', { params: filtros });
+    historial.value = response.data.data || [];
+  } catch (error) {
+    console.error('Error al cargar historial:', error);
+    historial.value = [];
+  } finally {
+    loadingHistorial.value = false;
+  }
+};
+
+// =========================
+// Modal Asignación
+// =========================
+const abrirModalEdicion = async (asignacion) => {
+  asignacionSeleccionada.value = asignacion;
+  mostrarModalAsignacion.value = true;
+  
+  try {
+    // Cargar horarios reales desde la API
+    const response = await api.get(`/horarios?institucion_id=${asignacion.institucion_id}`);
+    horariosDisponibles.value = response.data || [];
+    
+    // Mapear horarios seleccionados
+    horariosSeleccionados.value = asignacion.horarios ? asignacion.horarios.split(', ').map((_, i) => i + 1) : [];
+  } catch (error) {
+    console.error('Error al cargar horarios:', error);
+    horariosDisponibles.value = [];
+  }
+};
+
+const guardarCambiosAsignacion = async () => {
+  if (horariosSeleccionados.value.length === 0) {
+    alert.error("Validación", "Debes seleccionar al menos un horario");
+    return;
+  }
+
+  guardandoAsignacion.value = true;
+  try {
+    await api.post('/horarios/modificar-asignacion', {
+      usuario_app_id: asignacionSeleccionada.value.usuario_id,
+      institucion_id: asignacionSeleccionada.value.institucion_id,
+      horario_ids: horariosSeleccionados.value,
+    });
+    
+    alert.toastSuccess("Horarios modificados correctamente");
+    cerrarModalAsignacion();
+    await Promise.all([cargarAsignaciones(), cargarHistorial()]);
+  } catch (error) {
+    console.error('Error al guardar:', error);
+    alert.error("Error", "No se pudieron guardar los cambios");
+  } finally {
+    guardandoAsignacion.value = false;
+  }
+};
+
+const cerrarModalAsignacion = () => {
+  mostrarModalAsignacion.value = false;
+  asignacionSeleccionada.value = null;
+  horariosSeleccionados.value = [];
+};
+
+// =========================
+// Helpers
+// =========================
+const toggleHorario = (horarioId) => {
+  const index = horariosSeleccionados.value.indexOf(horarioId);
+  if (index > -1) {
+    horariosSeleccionados.value.splice(index, 1);
+  } else {
+    horariosSeleccionados.value.push(horarioId);
+  }
+};
+
+const formatDateTime = (dateString) => {
+  if (!dateString) return '-';
+  const date = new Date(dateString);
+  return date.toLocaleString('es-ES', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
+const formatHorarios = (ids) => {
+  if (!Array.isArray(ids)) return '-';
+  return ids.map(id => `Horario ${id}`).join(', ');
 };
 
 // Lifecycle

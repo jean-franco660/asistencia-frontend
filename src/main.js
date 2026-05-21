@@ -6,6 +6,9 @@ import pinia from './store'
 import VCalendar from 'v-calendar'
 import 'v-calendar/style.css'
 
+// Laravel Echo
+import './echo'
+
 // SweetAlert2 CSS
 import 'sweetalert2/dist/sweetalert2.min.css'
 

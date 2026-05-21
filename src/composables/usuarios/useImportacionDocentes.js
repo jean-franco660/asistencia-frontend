@@ -9,9 +9,6 @@ export function useImportacionDocentes(onImportCompleta) {
     const estadisticasImportacion = ref(null);
     const isPollingStats = ref(false);
     const descargandoErrores = ref(false);
-    let statsPollingInterval = null;
-
-    // --- Acciones de Importación ---
 
     const handleImportDocentes = (file) => usuariosService.importar(file);
 
@@ -124,17 +121,22 @@ export function useImportacionDocentes(onImportCompleta) {
     };
 
     const startStatsPolling = () => {
-        if (statsPollingInterval) return;
+        if (isPollingStats.value) return;
         isPollingStats.value = true;
-        statsPollingInterval = setInterval(async () => {
-            await loadEstadisticasImportacion();
-        }, 3000);
+
+        const userId = authStore.user?.id;
+        if (!userId || !window.Echo) return;
+
+        window.Echo.private(`importacion.${userId}`)
+            .listen('.progreso', async (data) => {
+                await loadEstadisticasImportacion();
+            });
     };
 
     const stopStatsPolling = () => {
-        if (statsPollingInterval) {
-            clearInterval(statsPollingInterval);
-            statsPollingInterval = null;
+        const userId = authStore.user?.id;
+        if (userId && window.Echo) {
+            window.Echo.leave(`importacion.${userId}`);
         }
         isPollingStats.value = false;
     };
