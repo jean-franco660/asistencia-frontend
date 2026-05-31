@@ -64,8 +64,8 @@
           <!-- Logo -->
           <div class="flex-shrink-0 bg-white p-2 rounded-xl shadow-sm">
             <img 
-              v-if="institucion.logo" 
-              :src="`/storage/${institucion.logo}`" 
+              v-if="institucion.logo || institucion.logo_url" 
+              :src="institucion.logo_url || `/storage/${institucion.logo}`" 
               alt="Logo Institución" 
               class="w-20 h-20 object-contain"
             />
@@ -105,77 +105,109 @@
 
       <!-- Content Body -->
       <div class="px-6 pb-6 space-y-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        
-        <!-- Ubicación Card -->
-        <div class="bg-gray-50 dark:bg-gray-700/30 p-5 rounded-xl border border-gray-100 dark:border-gray-700 space-y-4">
-          <h4 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-            Ubicación & Geofence
-          </h4>
-          
-          <div class="space-y-3">
-            <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600 border-dashed last:border-0 hover:bg-white dark:hover:bg-gray-600/50 p-2 rounded transition-colors">
-              <span class="text-sm text-gray-500">Distrito</span>
-              <span class="font-medium text-gray-800 dark:text-gray-200">{{ institucion.distrito || '—' }}</span>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          <!-- Información general -->
+          <div class="bg-gray-50 dark:bg-gray-700/30 p-5 rounded-xl border border-gray-100 dark:border-gray-700 space-y-4">
+            <h4 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-3-3v6m-7 6h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+              Información general
+            </h4>
+            <div class="space-y-3">
+              <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600 border-dashed last:border-0 hover:bg-white p-2 rounded transition-colors">
+                <span class="text-sm text-gray-500">Nivel educativo</span>
+                <span class="font-medium text-gray-800 dark:text-gray-200">{{ institucion.nivel_educativo || '—' }}</span>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600 border-dashed last:border-0 hover:bg-white p-2 rounded transition-colors">
+                <span class="text-sm text-gray-500">Tipo de gestión</span>
+                <span class="font-medium text-gray-800 dark:text-gray-200">{{ institucion.tipo_gestion || '—' }}</span>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600 border-dashed last:border-0 hover:bg-white p-2 rounded transition-colors">
+                <span class="text-sm text-gray-500">Departamento</span>
+                <span class="font-medium text-gray-800 dark:text-gray-200">{{ institucion.departamento || '—' }}</span>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600 border-dashed last:border-0 hover:bg-white p-2 rounded transition-colors">
+                <span class="text-sm text-gray-500">Provincia</span>
+                <span class="font-medium text-gray-800 dark:text-gray-200">{{ institucion.provincia || '—' }}</span>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600 border-dashed last:border-0 hover:bg-white p-2 rounded transition-colors">
+                <span class="text-sm text-gray-500">Centro poblado</span>
+                <span class="font-medium text-gray-800 dark:text-gray-200">{{ institucion.centro_poblado || '—' }}</span>
+              </div>
+              <div class="flex justify-between items-start py-2 hover:bg-white p-2 rounded transition-colors">
+                <span class="text-sm text-gray-500">Dirección</span>
+                <span class="font-medium text-gray-800 dark:text-gray-200 text-right">{{ institucion.direccion || '—' }}</span>
+              </div>
             </div>
+          </div>
+
+          <!-- Ubicación Card -->
+          <div class="bg-gray-50 dark:bg-gray-700/30 p-5 rounded-xl border border-gray-100 dark:border-gray-700 space-y-4">
+            <h4 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+              Ubicación & Geofence
+            </h4>
             
-            <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600 border-dashed last:border-0 hover:bg-white p-2 rounded transition-colors">
-              <span class="text-sm text-gray-500">Coordenadas</span>
-              <div class="text-right">
-                <div class="text-xs font-mono text-gray-600 dark:text-gray-300">Lat: {{ institucion.latitud || '—' }}</div>
-                <div class="text-xs font-mono text-gray-600 dark:text-gray-300">Lon: {{ institucion.longitud || '—' }}</div>
+            <div class="space-y-3">
+              <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600 border-dashed last:border-0 hover:bg-white p-2 rounded transition-colors">
+                <span class="text-sm text-gray-500">Distrito</span>
+                <span class="font-medium text-gray-800 dark:text-gray-200">{{ institucion.distrito || '—' }}</span>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600 border-dashed last:border-0 hover:bg-white p-2 rounded transition-colors">
+                <span class="text-sm text-gray-500">Coordenadas</span>
+                <div class="text-right">
+                  <div class="text-xs font-mono text-gray-600 dark:text-gray-300">Lat: {{ institucion.latitud || '—' }}</div>
+                  <div class="text-xs font-mono text-gray-600 dark:text-gray-300">Lon: {{ institucion.longitud || '—' }}</div>
+                </div>
+              </div>
+
+              <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600 border-dashed last:border-0 hover:bg-white p-2 rounded transition-colors">
+                <span class="text-sm text-gray-500">Radio Permitido</span>
+                <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-bold dark:bg-blue-900/40 dark:text-blue-300">
+                  {{ institucion.radio || 0 }} metros
+                </span>
+              </div>
+
+              <a 
+                v-if="institucion.latitud && institucion.longitud"
+                :href="`https://www.google.com/maps/search/?api=1&query=${institucion.latitud},${institucion.longitud}`"
+                target="_blank"
+                class="block w-full text-center py-2 bg-white dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded-lg text-sm text-blue-600 dark:text-blue-300 font-medium hover:bg-blue-50 dark:hover:bg-gray-500 transition-colors mt-2"
+              >
+                Ver Ubicación en Mapa
+              </a>
+            </div>
+          </div>
+
+          <!-- Estadísticas Card -->
+          <div class="bg-gray-50 dark:bg-gray-700/30 p-5 rounded-xl border border-gray-100 dark:border-gray-700 space-y-4">
+            <h4 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+              Métricas
+            </h4>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-600 text-center">
+                <div class="text-3xl font-bold text-indigo-600 dark:text-indigo-400">{{ institucion.usuarios_count || 0 }}</div>
+                <div class="text-xs text-gray-500 uppercase tracking-wide mt-1">Docentes</div>
+              </div>
+              <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-600 text-center">
+                <div class="text-3xl font-bold text-purple-600 dark:text-purple-400">{{ institucion.horarios_count || 0 }}</div>
+                <div class="text-xs text-gray-500 uppercase tracking-wide mt-1">Horarios</div>
               </div>
             </div>
 
-            <div class="flex justify-between items-center py-2 hover:bg-white p-2 rounded transition-colors">
-              <span class="text-sm text-gray-500">Radio Permitido</span>
-              <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-bold dark:bg-blue-900/40 dark:text-blue-300">
-                {{ institucion.radio || 0 }} metros
-              </span>
-            </div>
-            
-            <!-- Map Link -->
-            <a 
-              v-if="institucion.latitud && institucion.longitud"
-              :href="`https://www.google.com/maps/search/?api=1&query=${institucion.latitud},${institucion.longitud}`"
-              target="_blank"
-              class="block w-full text-center py-2 bg-white dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded-lg text-sm text-blue-600 dark:text-blue-300 font-medium hover:bg-blue-50 dark:hover:bg-gray-500 transition-colors mt-2"
-            >
-              Ver Ubicación en Mapa
-            </a>
-          </div>
-        </div>
-
-        <!-- Estadísticas Card -->
-        <div class="bg-gray-50 dark:bg-gray-700/30 p-5 rounded-xl border border-gray-100 dark:border-gray-700 space-y-4">
-          <h4 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-            Métricas
-          </h4>
-
-          <div class="grid grid-cols-2 gap-4">
-            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-600 text-center">
-              <div class="text-3xl font-bold text-indigo-600 dark:text-indigo-400">{{ institucion.usuarios_count || 0 }}</div>
-              <div class="text-xs text-gray-500 uppercase tracking-wide mt-1">Docentes</div>
-            </div>
-            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-600 text-center">
-              <div class="text-3xl font-bold text-purple-600 dark:text-purple-400">{{ institucion.horarios_count || 0 }}</div>
-              <div class="text-xs text-gray-500 uppercase tracking-wide mt-1">Horarios</div>
+            <div class="pt-4 mt-2 border-t border-gray-200 dark:border-gray-600">
+              <div class="flex justify-between items-center text-xs text-gray-400">
+                <span>Creado el:</span>
+                <span>{{ formatDate(institucion.created_at) }}</span>
+              </div>
+              <div class="flex justify-between items-center text-xs text-gray-400 mt-1">
+                <span>Última mod:</span>
+                <span>{{ formatDate(institucion.updated_at) }}</span>
+              </div>
             </div>
           </div>
-
-          <div class="pt-4 mt-2 border-t border-gray-200 dark:border-gray-600">
-            <div class="flex justify-between items-center text-xs text-gray-400">
-              <span>Creado el:</span>
-              <span>{{ formatDate(institucion.created_at) }}</span>
-            </div>
-            <div class="flex justify-between items-center text-xs text-gray-400 mt-1">
-              <span>Última mod:</span>
-              <span>{{ formatDate(institucion.updated_at) }}</span>
-            </div>
-          </div>
-        </div>
         </div>
       </div>
     </div>

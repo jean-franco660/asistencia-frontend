@@ -120,7 +120,7 @@
         </div>
 
         <!-- Nivel Educativo -->
-        <div class="md:col-span-2">
+        <div class="md:col-span-2 lg:col-span-1">
           <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
             Nivel Educativo
           </label>
@@ -128,6 +128,19 @@
             v-model="form.nivel_educativo"
             type="text"
             placeholder="Ej: Secundaria"
+            class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-blue-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-500/20 transition-all shadow-sm"
+          />
+        </div>
+
+        <!-- Tipo de Gestión -->
+        <div class="md:col-span-2 lg:col-span-1">
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            Tipo de gestión
+          </label>
+          <input
+            v-model="form.tipo_gestion"
+            type="text"
+            placeholder="Ej: Pública"
             class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-blue-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-500/20 transition-all shadow-sm"
           />
         </div>
@@ -142,6 +155,32 @@
             type="text"
             required
             placeholder="Ej: Lima"
+            class="w-full px-4 py-2 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-blue-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-500/20 transition-all shadow-sm"
+          />
+        </div>
+
+        <!-- Departamento -->
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            Departamento
+          </label>
+          <input
+            v-model="form.departamento"
+            type="text"
+            placeholder="Ej: Puno"
+            class="w-full px-4 py-2 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-blue-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-500/20 transition-all shadow-sm"
+          />
+        </div>
+
+        <!-- Provincia -->
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            Provincia
+          </label>
+          <input
+            v-model="form.provincia"
+            type="text"
+            placeholder="Ej: San Román"
             class="w-full px-4 py-2 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-blue-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-500/20 transition-all shadow-sm"
           />
         </div>

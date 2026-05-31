@@ -62,8 +62,8 @@
             <td class="px-6 py-4">
               <div class="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                 <img
-                  v-if="institucion.logo"
-                  :src="institucion.logo"
+                  v-if="institucion.logo || institucion.logo_url"
+                  :src="institucion.logo_url || institucion.logo"
                   :alt="institucion.nombre"
                   class="w-full h-full object-cover"
                 />

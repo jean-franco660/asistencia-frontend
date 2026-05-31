@@ -25,7 +25,10 @@ export default defineConfig({
           'vendor': ['vue', 'vue-router', 'pinia'],
           'ui': ['sweetalert2', 'v-calendar'],
           'charts': ['chart.js', 'vue-chartjs'],
-          'icons': ['@heroicons/vue', 'lucide-vue-next']
+          'icons': ['@heroicons/vue', 'lucide-vue-next'],
+          'vue-vendor': ['vue', 'pinia'],
+          'vcalendar': ['v-calendar'],
+          'sweetalert': ['sweetalert2']
         }
       }
     },

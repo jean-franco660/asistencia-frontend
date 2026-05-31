@@ -38,6 +38,20 @@ const routes = [
   },
 
   {
+    path: '/justificaciones',
+    name: 'Justificaciones',
+    component: () => import('@/views/justificaciones/JustificacionesView.vue'),
+    meta: { requiresAuth: true, roles: ['super_admin', 'administrador', 'supervisor'] }
+  },
+
+  {
+    path: '/feriados',
+    name: 'Feriados',
+    component: () => import('@/views/feriados/Feriados.vue'),
+    meta: { requiresAuth: true, roles: ['super_admin', 'administrador', 'supervisor'] }
+  },
+
+  {
     path: '/horarios',
     name: 'HorariosInstitucion',
     component: () => import('@/views/horarios/HorariosView.vue'),

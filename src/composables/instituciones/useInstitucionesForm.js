@@ -17,6 +17,9 @@ export function useInstitucionesForm(onSuccess) {
         codigo_modular_ie: "",
         nombre: "",
         nivel_educativo: "",
+        tipo_gestion: "",
+        departamento: "",
+        provincia: "",
         distrito: "",
         centro_poblado: "",
         direccion: "",
@@ -49,13 +52,16 @@ export function useInstitucionesForm(onSuccess) {
             codigo_modular_ie: institucion.codigo_modular_ie || "",
             nombre: institucion.nombre || "",
             nivel_educativo: institucion.nivel_educativo || "",
+            tipo_gestion: institucion.tipo_gestion || "",
+            departamento: institucion.departamento || "",
+            provincia: institucion.provincia || "",
             distrito: institucion.distrito || "",
             centro_poblado: institucion.centro_poblado || "",
             direccion: institucion.direccion || "",
             latitud: institucion.latitud,
             longitud: institucion.longitud,
             radio: institucion.radio || 30,
-            logo: institucion.logo || null,
+            logo: institucion.logo_url || institucion.logo || null,
             remove_logo: false,
         });
         logoFile.value = null;
@@ -83,6 +89,9 @@ export function useInstitucionesForm(onSuccess) {
             formData.append("codigo_modular_ie", form.codigo_modular_ie);
             formData.append("nombre", form.nombre);
             formData.append("nivel_educativo", form.nivel_educativo || "");
+            formData.append("tipo_gestion", form.tipo_gestion || "");
+            formData.append("departamento", form.departamento || "");
+            formData.append("provincia", form.provincia || "");
             formData.append("distrito", form.distrito || "");
             formData.append("centro_poblado", form.centro_poblado || "");
             formData.append("direccion", form.direccion || "");
@@ -173,6 +182,9 @@ export function useInstitucionesForm(onSuccess) {
         form.codigo_modular_ie = "";
         form.nombre = "";
         form.nivel_educativo = "";
+        form.tipo_gestion = "";
+        form.departamento = "";
+        form.provincia = "";
         form.distrito = "";
         form.centro_poblado = "";
         form.direccion = "";
