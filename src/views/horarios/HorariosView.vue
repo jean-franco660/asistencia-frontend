@@ -36,7 +36,7 @@
 
       <!-- Selector de institución Premium con Buscador -->
       <div
-        class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 backdrop-blur-sm"
+        class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 backdrop-blur-sm overflow-visible"
       >
         <div class="flex items-center gap-3 mb-3">
           <div
@@ -189,7 +189,7 @@
             <!-- Dropdown de resultados -->
             <div
               v-if="showInstitucionDropdown && filteredInstituciones.length"
-              class="absolute z-50 w-full mt-1 max-h-64 overflow-auto bg-white dark:bg-gray-800 border-2 border-blue-300 dark:border-blue-600 rounded-xl shadow-2xl inst-dropdown-horarios"
+              class="absolute z-50 w-full mt-2 max-h-64 overflow-auto bg-white dark:bg-gray-800 border-2 border-blue-300 dark:border-blue-600 rounded-xl shadow-2xl inst-dropdown-horarios"
             >
               <button
                 type="button"
@@ -289,7 +289,7 @@
                 !filteredInstituciones.length &&
                 !loadingInstitucionesBuscador
               "
-              class="absolute z-50 w-full mt-1 p-4 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-xl shadow-xl inst-dropdown-horarios"
+              class="absolute z-50 w-full mt-2 p-4 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-xl shadow-xl inst-dropdown-horarios"
             >
               <div class="flex flex-col items-center gap-2 py-2">
                 <div
