@@ -36,7 +36,7 @@
 
       <!-- Selector de institución Premium con Buscador -->
       <div
-        class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 backdrop-blur-sm overflow-visible"
+        class="relative z-50 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 backdrop-blur-sm overflow-visible"
       >
         <div class="flex items-center gap-3 mb-3">
           <div
@@ -189,7 +189,7 @@
             <!-- Dropdown de resultados -->
             <div
               v-if="showInstitucionDropdown && filteredInstituciones.length"
-              class="absolute z-50 w-full mt-2 max-h-64 overflow-auto bg-white dark:bg-gray-800 border-2 border-blue-300 dark:border-blue-600 rounded-xl shadow-2xl inst-dropdown-horarios"
+              class="absolute z-[9999] w-full mt-2 max-h-64 overflow-auto bg-white dark:bg-gray-800 border-2 border-blue-300 dark:border-blue-600 rounded-xl shadow-2xl inst-dropdown-horarios"
             >
               <button
                 type="button"
@@ -228,7 +228,7 @@
                     >
                      <span class="text-blue-600 dark:text-blue-400 font-semibold text-xs">I.E.</span> {{ inst.nombre }}
                     </p>
-                    <div class="flex items-center gap-2 mt-1">
+                    <div class="flex flex-wrap items-center gap-2 mt-1">
                       <span
                         class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300"
                       >
@@ -245,7 +245,7 @@
                             d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
                           />
                         </svg>
-                        {{ inst.codigo_modular_ie }}
+                        # {{ inst.codigo_modular_ie }}
                       </span>
 
                       <span
@@ -289,7 +289,7 @@
                 !filteredInstituciones.length &&
                 !loadingInstitucionesBuscador
               "
-              class="absolute z-50 w-full mt-2 p-4 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-xl shadow-xl inst-dropdown-horarios"
+              class="absolute z-[9999] w-full mt-2 p-4 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-xl shadow-xl inst-dropdown-horarios"
             >
               <div class="flex flex-col items-center gap-2 py-2">
                 <div
@@ -367,7 +367,7 @@
                           d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
                         />
                       </svg>
-                      {{ selectedInstitucionCodigo || "N/A" }}
+                      # {{ selectedInstitucionCodigo || "N/A" }}
                     </span>
                   </div>
                 </div>
@@ -416,7 +416,7 @@
       </div>
 
       <!-- Tabs -->
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg mb-6 p-1 border border-gray-200 dark:border-gray-700">
+      <div class="relative z-10 bg-white dark:bg-gray-800 rounded-2xl shadow-lg mb-6 p-1 border border-gray-200 dark:border-gray-700">
         <div class="flex gap-1">
           <button
             @click="activeTab = 'turnos'"
