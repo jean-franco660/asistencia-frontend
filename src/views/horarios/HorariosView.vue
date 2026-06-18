@@ -978,6 +978,247 @@
       </div>
     </div>
 
+    <!-- Tab Asignaciones -->
+    <div v-if="activeTab === 'asignaciones'" class="space-y-6">
+      <!-- Filtros Asignaciones -->
+      <div v-if="institucionId" class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+        <div class="flex flex-col sm:flex-row gap-4 items-center">
+          <div class="flex-1 w-full">
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Buscar Docente
+            </label>
+            <div class="relative">
+              <input
+                v-model="filtrosAsignaciones.usuario"
+                @input="cargarAsignaciones"
+                type="text"
+                placeholder="Buscar docente por nombre o apellidos..."
+                class="w-full pl-10 pr-4 py-2.5 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              />
+              <svg class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla Asignaciones -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-750 dark:to-gray-700 px-4 sm:px-6 py-4 border-b border-gray-200 dark:border-gray-600 flex items-center justify-between">
+          <h2 class="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            Docentes y Horarios Asignados
+            <span v-if="loadingAsignaciones" class="animate-spin">⏳</span>
+          </h2>
+        </div>
+
+        <div v-if="loadingAsignaciones" class="p-12 text-center">
+          <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-600"></div>
+          <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">Cargando asignaciones...</p>
+        </div>
+
+        <div v-else class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-750 dark:to-gray-700">
+                <th class="px-4 sm:px-6 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Docente</th>
+                <th class="px-4 sm:px-6 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Institución</th>
+                <th class="px-4 sm:px-6 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Horarios Asignados</th>
+                <th class="px-4 sm:px-6 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Última Modificación</th>
+                <th class="px-4 sm:px-6 py-3 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Acciones</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+              <tr v-for="asig in asignaciones" :key="`asig-${asig.usuario_id}-${asig.institucion_id}`" class="hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors duration-150">
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">
+                      {{ asig.nombres.charAt(0) }}{{ asig.apellido_paterno.charAt(0) }}
+                    </div>
+                    <div>
+                      <div class="font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base">
+                        {{ asig.apellido_paterno }} {{ asig.apellido_materno }} {{ asig.nombres }}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-4 sm:px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                  <div>
+                    <div class="font-medium">I.E. {{ asig.institucion }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">CM: {{ asig.codigo_modular_ie }}</div>
+                  </div>
+                </td>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="flex flex-wrap gap-1.5">
+                    <span v-for="turno in (asig.horarios ? asig.horarios.split(', ') : [])" :key="turno"
+                          class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300">
+                      {{ turno }}
+                    </span>
+                    <span v-if="!asig.horarios" class="text-xs text-gray-500 italic">Sin horarios</span>
+                  </div>
+                </td>
+                <td class="px-4 sm:px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                  {{ formatDateTime(asig.ultima_modificacion) }}
+                </td>
+                <td class="px-4 sm:px-6 py-4 text-center">
+                  <button
+                    @click="abrirModalEdicion(asig)"
+                    class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-semibold flex items-center gap-1.5 mx-auto transition-all transform hover:scale-105"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                    Modificar Horarios
+                  </button>
+                </td>
+              </tr>
+              <tr v-if="!asignaciones.length">
+                <td colspan="5" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                  <div class="flex flex-col items-center gap-2">
+                    <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                    </svg>
+                    <span class="font-medium text-sm">No se encontraron asignaciones</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Historial -->
+    <div v-if="activeTab === 'historial'" class="space-y-6">
+      <!-- Filtros Historial -->
+      <div v-if="institucionId" class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+        <div class="flex flex-col sm:flex-row gap-4 items-end">
+          <div class="flex-1 w-full">
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Fecha Desde
+            </label>
+            <input
+              v-model="filtrosHistorial.fecha_desde"
+              @change="cargarHistorial"
+              type="date"
+              class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            />
+          </div>
+          <div class="flex-1 w-full">
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Fecha Hasta
+            </label>
+            <input
+              v-model="filtrosHistorial.fecha_hasta"
+              @change="cargarHistorial"
+              type="date"
+              class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            />
+          </div>
+          <button
+            v-if="filtrosHistorial.fecha_desde || filtrosHistorial.fecha_hasta"
+            @click="limpiarFiltrosHistorial"
+            class="px-4 py-2.5 bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 font-semibold rounded-xl text-sm transition-all"
+          >
+            Limpiar Filtros
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabla Historial -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-750 dark:to-gray-700 px-4 sm:px-6 py-4 border-b border-gray-200 dark:border-gray-600 flex items-center justify-between">
+          <h2 class="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            Historial de Modificaciones
+            <span v-if="loadingHistorial" class="animate-spin">⏳</span>
+          </h2>
+        </div>
+
+        <div v-if="loadingHistorial" class="p-12 text-center">
+          <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-600"></div>
+          <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">Cargando historial...</p>
+        </div>
+
+        <div v-else class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-750 dark:to-gray-700">
+                <th class="px-4 sm:px-6 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Fecha y Hora</th>
+                <th class="px-4 sm:px-6 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Docente</th>
+                <th class="px-4 sm:px-6 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Horario Anterior</th>
+                <th class="px-4 sm:px-6 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Horario Nuevo</th>
+                <th class="px-4 sm:px-6 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Modificado Por</th>
+                <th class="px-4 sm:px-6 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Motivo</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+              <tr v-for="log in historial" :key="`log-${log.id}`" class="hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors duration-150">
+                <td class="px-4 sm:px-6 py-4 text-sm text-gray-700 dark:text-gray-300 font-medium">
+                  {{ formatDateTime(log.created_at) }}
+                </td>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    {{ log.usuario ? `${log.usuario.apellido_paterno} ${log.usuario.apellido_materno} ${log.usuario.nombres}` : 'Desconocido' }}
+                  </div>
+                </td>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="flex flex-wrap gap-1">
+                    <span v-for="turno in (log.horario_anterior ? formatHorarios(log.horario_anterior).split(', ') : [])" :key="turno"
+                          class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                      {{ turno }}
+                    </span>
+                    <span v-if="!log.horario_anterior || log.horario_anterior.length === 0" class="text-xs text-gray-500 italic">Ninguno</span>
+                  </div>
+                </td>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="flex flex-wrap gap-1">
+                    <span v-for="turno in (log.horario_nuevo ? formatHorarios(log.horario_nuevo).split(', ') : [])" :key="turno"
+                          class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300">
+                      {{ turno }}
+                    </span>
+                    <span v-if="!log.horario_nuevo || log.horario_nuevo.length === 0" class="text-xs text-gray-500 italic">Ninguno</span>
+                  </div>
+                </td>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {{ log.admin ? log.admin.nombre : 'Sistema' }}
+                  </div>
+                  <div class="text-[10px] text-gray-500 dark:text-gray-400 capitalize">
+                    {{ log.origen ? log.origen.toLowerCase() : 'Desconocido' }}
+                  </div>
+                </td>
+                <td class="px-4 sm:px-6 py-4 text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate" :title="log.motivo">
+                  {{ log.motivo || 'Sin motivo especificado' }}
+                </td>
+              </tr>
+              <tr v-if="!historial.length">
+                <td colspan="6" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                  <div class="flex flex-col items-center gap-2">
+                    <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span class="font-medium text-sm">No hay registros de cambios en el historial</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Asignación -->
+
     <!-- Modal de Asignación -->
     <div
       v-if="mostrarModalAsignacion"
@@ -1907,7 +2148,16 @@ const cargarAsignaciones = async () => {
     const filtros = { ...filtrosAsignaciones.value };
     if (institucionId.value) filtros.institucion_id = institucionId.value;
     const response = await api.get('/horarios/asignaciones', { params: filtros });
-    asignaciones.value = response.data.data || [];
+    const result = response.data?.data;
+    if (result && result.data && Array.isArray(result.data)) {
+      asignaciones.value = result.data;
+    } else if (Array.isArray(result)) {
+      asignaciones.value = result;
+    } else if (response.data && Array.isArray(response.data)) {
+      asignaciones.value = response.data;
+    } else {
+      asignaciones.value = [];
+    }
   } catch (error) {
     console.error('Error al cargar asignaciones:', error);
     asignaciones.value = [];
@@ -1926,13 +2176,28 @@ const cargarHistorial = async () => {
     const filtros = { ...filtrosHistorial.value };
     if (institucionId.value) filtros.institucion_id = institucionId.value;
     const response = await api.get('/horarios/historial', { params: filtros });
-    historial.value = response.data.data || [];
+    const result = response.data?.data;
+    if (result && result.data && Array.isArray(result.data)) {
+      historial.value = result.data;
+    } else if (Array.isArray(result)) {
+      historial.value = result;
+    } else if (response.data && Array.isArray(response.data)) {
+      historial.value = response.data;
+    } else {
+      historial.value = [];
+    }
   } catch (error) {
     console.error('Error al cargar historial:', error);
     historial.value = [];
   } finally {
     loadingHistorial.value = false;
   }
+};
+
+const limpiarFiltrosHistorial = () => {
+  filtrosHistorial.value.fecha_desde = '';
+  filtrosHistorial.value.fecha_hasta = '';
+  cargarHistorial();
 };
 
 // =========================
@@ -1945,10 +2210,18 @@ const abrirModalEdicion = async (asignacion) => {
   try {
     // Cargar horarios reales desde la API
     const response = await api.get(`/horarios?institucion_id=${asignacion.institucion_id}`);
-    horariosDisponibles.value = response.data || [];
+    const list = response.data?.data || response.data || [];
+    horariosDisponibles.value = Array.isArray(list) ? list : [];
     
-    // Mapear horarios seleccionados
-    horariosSeleccionados.value = asignacion.horarios ? asignacion.horarios.split(', ').map((_, i) => i + 1) : [];
+    // Mapear horarios seleccionados buscando coincidencia por nombre_turno
+    if (asignacion.horarios) {
+      const nombresTurnos = asignacion.horarios.split(', ').map(t => t.trim().toUpperCase());
+      horariosSeleccionados.value = horariosDisponibles.value
+        .filter(h => nombresTurnos.includes(h.nombre_turno.trim().toUpperCase()))
+        .map(h => h.id);
+    } else {
+      horariosSeleccionados.value = [];
+    }
   } catch (error) {
     console.error('Error al cargar horarios:', error);
     horariosDisponibles.value = [];
@@ -2011,8 +2284,23 @@ const formatDateTime = (dateString) => {
 };
 
 const formatHorarios = (ids) => {
-  if (!Array.isArray(ids)) return '-';
-  return ids.map(id => `Horario ${id}`).join(', ');
+  if (!Array.isArray(ids)) {
+    if (typeof ids === 'string') {
+      try {
+        const parsed = JSON.parse(ids);
+        if (Array.isArray(parsed)) ids = parsed;
+        else return ids;
+      } catch {
+        return ids;
+      }
+    } else {
+      return '-';
+    }
+  }
+  return ids.map(id => {
+    const h = horarios.value.find(hor => hor.id === id);
+    return h ? h.nombre_turno : `Horario #${id}`;
+  }).join(', ');
 };
 
 // Lifecycle
